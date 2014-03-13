@@ -1,0 +1,58 @@
+<h1 class="text-center">
+  <a href="#/apps">Apps</a> > {{app.title}}
+</h1>
+
+<div class="text-center" ng-hide="app">
+  <h2>No app found with the id of {{appId}}.</h2>
+</div>
+
+<div class="row" ng-show="app">
+  <div class="col-xs-4">
+    <h4>Forms</h4>
+    <p ng-hide="app.forms">There are no forms on this app.</p>
+    <ul class="list-unstyled" ng-show="app.forms">
+      <li ng-repeat="form in app.forms">
+        <a href="#/apps/{{appId}}/forms/update/{{form.id}}">
+          {{form.name}}
+        </a>
+      </li>
+    </ul>
+    <a class="btn btn-default" href="#/apps/{{appId}}/forms/create">Create Form</a>
+  </div>
+  <div class="col-xs-4">
+    <h4>Listings</h4>
+    <p ng-hide="app.listings">There are no listings on this app.</p>
+    <ul class="list-unstyled" ng-show="app.listings">
+      <li ng-repeat="listing in app.listings">
+        <a href="#/apps/{{appId}}/listings/update/{{listing.id}}">
+          {{listing.name}}
+        </a>
+      </li>
+    </ul>
+    <a class="btn btn-default" href="#/apps/{{appId}}/listings/create">Create Listing</a>
+  </div>
+  <div class="col-xs-4">
+    <h4>Navigation Links</h4>
+
+    <p ng-if="!app.navLinks">There are no navigation links on this app.</p>
+
+    <ul class="list-unstyled" ng-if="app.navLinks">
+      <li ng-repeat="navLink in navLinksTree()">
+        {{navLink.text}}
+        <ul ng-if="navLink.type === 'dropdown'">
+          <li ng-repeat="childLink in navLink.children">
+            {{childLink.text}}
+          </li>
+        </ul>
+      </li>
+    </ul>
+    <a class="btn btn-default" href="#/apps/{{app.id}}/navLinks/modify">Modify Navigation Links</a>
+  </div>
+</div>
+
+<hr/>
+
+<div class="text-center">
+  <a class="btn btn-primary btn-lg" href="#/apps/{{app.id}}/preview">Preview App</a>
+  <a class="btn btn-primary btn-lg" href="#/apps/{{app.id}}/deploy">Deploy App</a>
+</div>

@@ -1,0 +1,87 @@
+<h1 class="text-center">
+  <a href="#/apps">Apps</a> > <a href="#/apps/{{appId}}">{{app.title}}</a> > Listings > Create
+</h1>
+
+<div class="text-center" ng-hide="app">
+  <h2>No app found with the title of {{id}}.</h2>
+</div>
+
+<form class="form-horizontal clearfix" ng-show="app" ng-submit="save(listing)">
+  <div class="form-group">
+    <label class="control-label col-sm-2">Name</label>
+    <div class="col-sm-6">
+      <input class="form-control" type="text" required ng-model="listing.name"/>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-sm-2">Form</label>
+    <div class="col-sm-6">
+      <select class="form-control" ng-model="listing.formId" ng-change="formSelected()"
+              ng-options="form.id as form.name for form in app.forms"></select>
+    </div>
+  </div>
+  <div class="form-group" ng-if="listing.formId">
+    <label class="control-label col-sm-2">Fields</label>
+    <div class="col-sm-6">
+      <label class="checkbox-inline" ng-repeat="field in selectedForm().fields">
+        <input type="checkbox" ng-model="listing.fields[field.title]" />
+        {{field.title}}
+      </label>
+    </div>
+  </div>
+  <div class="form-group" ng-if="listing.formId">
+    <label class="control-label col-sm-2">Link to Update Form</label>
+    <div class="col-sm-6">
+      <label class="radio-inline">
+        <input type="radio" required name="listing.linkToUpdateForm" ng-model="listing.linkToUpdateForm" value="no"/>
+        No
+      </label>
+      <label class="radio-inline">
+        <input type="radio" required name="listing.linkToUpdateForm" ng-model="listing.linkToUpdateForm" value="separateColumn"/>
+        Separate Column
+      </label>
+      <label class="radio-inline">
+        <input type="radio" required name="listing.linkToUpdateForm" ng-model="listing.linkToUpdateForm" value="useField"/>
+        Use Field
+      </label>
+    </div>
+  </div>
+  <div class="form-group" ng-if="listing.linkToUpdateForm === 'useField'">
+    <select class="form-control" size="2" ng-model="listing.fieldLinkingToUpdateForm"
+            ng-options="field for field in selectedFields()"></select>
+  </div>
+  <div class="form-group">
+    <input class="btn btn-primary" type="submit" value="Save listing"
+           ng-disabled="!listing.name || !listing.formId || noSelectedFields() || !listing.linkToUpdateForm || (listing.linkToUpdateForm === 'useField' && !listing.fieldLinkingToUpdateForm)" />
+  </div>
+</form>
+<div ng-hide="noSelectedFields()">
+  <hr/>
+  <h3>Listing Preview</h3>
+
+  <hr/>
+
+  <table class="table table-bordered table-condensed table-striped table-hover" ng-if="!noSelectedFields()">
+    <thead>
+      <th ng-if="listing.linkToUpdateForm === 'separateColumn'">
+        Details
+      </th>
+      <th ng-repeat="field in listingFields()">
+        {{field.title}}
+      </th>
+    </thead>
+    <tbody>
+      <td ng-if="listing.linkToUpdateForm === 'separateColumn'">
+        <a href="">Details</a>
+      </td>
+      <td ng-repeat="field in listingFields()">
+        <span ng-if="listing.linkToUpdateForm !== 'useField' || (listing.fieldLinkingToUpdateForm !== field.title)">
+          {{sampleValue(field)}}
+        </span>
+        <a href="" ng-if="listing.linkToUpdateForm === 'useField' && listing.fieldLinkingToUpdateForm === field.title">
+          {{sampleValue(field)}}
+        </a>
+      </td>
+    </tbody>
+  </table>
+</div>

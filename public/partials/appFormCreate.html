@@ -1,0 +1,92 @@
+<h1 class="text-center">
+  <a href="#/apps">Apps</a> > <a href="#/apps/{{app.id}}">{{app.title}}</a> > Forms > Create
+</h1>
+
+<div class="text-center" ng-hide="app">
+  <h2>No app found with the title of {{id}}.</h2>
+</div>
+
+<form class="form-horizontal clearfix" ng-show="app" ng-submit="save(form)">
+  <div class="form-group">
+    <label class="control-label col-sm-2">Name</label>
+    <div class="col-sm-6">
+      <input class="form-control" type="text" required ng-model="form.name"/>
+    </div>
+    <input class="btn btn-primary" type="submit" value="Save Form" ng-disabled="!validateForm()" />
+  </div>
+  <div>
+    <div class="col-sm-6">
+      <h3>Fields</h3>
+      <input type="button" class="btn btn-default" value="Add Field" ng-click="addField()" />
+      <input type="button" class="btn btn-default" value="Remove Field" ng-click="removeField(selectedField)" ng-disable="!selectedField" />
+      <select class="form-control" size="2" ng-model="selectedField"
+              ng-options="field.title for field in form.fields"></select>
+    </div>
+    <div class="col-sm-6">
+      <h3>Field Properties</h3>
+      <div class="form-group">
+        <label class="control-label col-sm-2">Title</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control" ng-model="selectedField.title"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="control-label col-sm-2">Type</label>
+        <div class="col-sm-10">
+          <select class="form-control" ng-model="selectedField.type"
+                  ng-options="type for type in types"></select>
+        </div>
+      </div>
+      <div class="form-group" ng-if="selectedField.type === 'options'">
+        <label class="control-label col-sm-2">Options</label>
+        <div class="col-sm-10">
+          <textarea class="form-control" ng-model="selectedField.options"></textarea>
+          <p class="help-block">Put each option in a new line</p>
+        </div>
+      </div>
+      <div class="form-group" ng-if="selectedField.type === 'options'">
+        <label class="control-label col-sm-2">Options Type</label>
+        <div class="col-sm-10">
+          <select class="form-control" ng-model="selectedField.optionType"
+                  ng-options="type for type in optionTypes"></select>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+
+<hr/>
+
+<h3>Form Preview</h3>
+
+<hr/>
+
+<form class="form-horizontal">
+  <h2>{{form.name}}</h2>
+  <div class="form-group col-sm-6" ng-repeat="field in form.fields">
+    <label class="col-sm-3 control-label" for="{{field.title}}" ng-if="field.type !== 'boolean'">{{field.title}}</label>
+    <div class="col-sm-9">
+      <input class="form-control" type="text" name="{{field.title}}" ng-model="field.value" ng-if="field.type === 'string'" />
+      <input class="form-control" type="number" name="{{field.title}}" ng-model="field.value" ng-if="field.type === 'number'" />
+      <input class="form-control" type="date" name="{{field.title}}" ng-model="field.value" ng-if="field.type === 'date'" />
+      <label class="checkbox" ng-if="field.type === 'boolean'">
+        <input type="checkbox" name="{{field.title}}" />
+        {{field.title}}
+      </label>
+      <label class="radio-inline" ng-if="field.type === 'options' && field.optionType === 'radio'"
+             ng-repeat="option in split(field.options)">
+        <input type="radio" name="field.title" />
+        {{option}}
+      </label>
+      <label class="checkbox-inline" ng-if="field.type === 'options' && field.optionType === 'checkbox'"
+             ng-repeat="option in split(field.options)">
+        <input type="checkbox" name="field.title" />
+        {{option}}
+      </label>
+      <select class="form-control" ng-model="field.value" ng-if="field.type === 'options' && field.optionType === 'select'"
+              ng-options="option for option in split(field.options)"></select>
+      <select class="form-control" multiple ng-model="field.value" ng-if="field.type === 'options' && field.optionType === 'multi-select'"
+              ng-options="option for option in split(field.options)"></select>
+    </div>
+  </div>
+ </form>

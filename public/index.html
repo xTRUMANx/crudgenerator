@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html ng-app="AppModule">
+<head>
+  <title ng-if="!title">Crud Gen</title>
+  <title ng-if="title">{{title}} - Crud Gen</title>
+
+  <link rel="stylesheet" href="css/bootstrap.min.css"/>
+</head>
+<body>
+  <nav class="navbar navbar-default">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/">Crud Gen</a>
+    </div>
+    <div class="collapse navbar-collapse" id="navbar-collapse">
+      <ul class="nav navbar-nav">
+        <li><a href="#/apps">Apps</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="container" ng-view></div>
+
+  <script type="application/javascript" src="js/jquery-2.0.3.min.js"></script>
+  <script type="application/javascript" src="js/bootstrap.min.js"></script>
+  <script type="application/javascript" src="js/angular.js"></script>
+  <script type="application/javascript" src="js/angular-route.js"></script>
+  <script type="application/javascript" src="js/checklist-model.js"></script>
+  <script type="application/javascript" src="js/app/AppModule.js"></script>
+  <script type="application/javascript" src="js/app/DataService.js"></script>
+  <script type="application/javascript" src="js/app/HomeCtrl.js"></script>
+  <script type="application/javascript" src="js/app/AppsCtrl.js"></script>
+  <script type="application/javascript" src="js/app/AppCtrl.js"></script>
+  <script type="application/javascript" src="js/app/AppFormCreateCtrl.js"></script>
+  <script type="application/javascript" src="js/app/AppListingCreateCtrl.js"></script>
+  <script type="application/javascript" src="js/app/AppNavLinksModifyCtrl.js"></script>
+  <script type="application/javascript" src="js/app/AppPreviewCtrl.js"></script>
+</body>
+</html>
