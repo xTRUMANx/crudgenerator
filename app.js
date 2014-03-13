@@ -6,6 +6,7 @@
 var express = require('express');
 var http = require('http');
 var path = require('path');
+var api = require('./routes/api');
 
 var app = express();
 

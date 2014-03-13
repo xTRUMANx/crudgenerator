@@ -18,6 +18,8 @@ appModule.controller("AppNavLinksModifyCtrl", function($scope, $routeParams, $lo
   };
 
   $scope.navLinksTree = function(){
+    if(!$scope.app) return [];
+
     var topLevelNavLinks = $scope.app.navLinks.filter(function(navLink){ return !navLink.parentId; });
 
     topLevelNavLinks.forEach(function(navLink){

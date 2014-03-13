@@ -15,6 +15,8 @@ appModule.controller("AppPreviewCtrl", function($scope, $routeParams, $location,
     });
 
   $scope.navLinksTree = function(){
+    if(!$scope.app) return [];
+
     var topLevelNavLinks = $scope.app.navLinks.filter(function(navLink){ return !navLink.parentId; });
 
     topLevelNavLinks.forEach(function(navLink){
@@ -31,9 +33,8 @@ appModule.controller("AppPreviewCtrl", function($scope, $routeParams, $location,
 
     if(navLink.linkTarget.type === 'Forms' && navLink.linkTarget.update) {
       var values = $scope.data[navLink.linkTarget.id][0];
-      console.log(values, $scope.obj.fields)
+
       $scope.obj.fields.forEach(function(f){f.value = values[f.title];});
-      console.log($scope.obj.fields)
     }
 
     if(navLink.linkTarget.type === 'Listings') {

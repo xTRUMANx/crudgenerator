@@ -19,6 +19,8 @@ appModule.controller("AppListingCreateCtrl", function($scope, $routeParams, $loc
   }
 
   $scope.formSelected = function(){
+    if(!$scope.listing) return;
+
     if($scope.originalListing && $scope.listing.formId === $scope.originalListing.formId) {
       $scope.listing.fields = $scope.originalListing.fields;
     }
@@ -30,16 +32,18 @@ appModule.controller("AppListingCreateCtrl", function($scope, $routeParams, $loc
   };
 
   $scope.noSelectedFields = function(){
-    //return $scope.listing.fields.filter(function(f){ return f.listing === true; }).length === 0;
+    if(!$scope.listing) return false;
+
     for(var key in $scope.listing.fields) {
       if($scope.listing.fields[key]) return false;
     }
 
     return true;
-  }
+  };
 
   $scope.listingFields = function(){
-    //return $scope.listing.form.fields.filter(function(f){ return f.listing; });
+    if(!$scope.listing) return [];
+
     var fieldTitles = [];
     for(var key in $scope.listing.fields) {
       if($scope.listing.fields[key]) fieldTitles.push(key);
