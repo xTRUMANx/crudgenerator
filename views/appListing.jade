@@ -1,0 +1,27 @@
+extends layout
+
+block content
+    h2= vm.listing.name
+
+    if !vm.data.length
+        h3 There is no data for this listing.
+    else
+        table.table.table-bordered.table-condensed.table-striped.table-hover
+            thead
+                tr
+                    if vm.listing.linkToUpdateForm === 'separateColumn'
+                        th Details
+                    each field in vm.listingFields
+                        th= field.title
+            tbody
+                each row in vm.data
+                    tr
+                        if vm.listing.linkToUpdateForm === 'separateColumn'
+                            td
+                                a(href='/deploys/' + vm.app.id + '/forms/' + vm.listing.formId + '?formDataId=' + row._id) Details
+                        each field in vm.listingFields
+                            td
+                                if vm.listing.linkToUpdateForm === 'useField' && vm.listing.fieldLinkingToUpdateForm === field.title
+                                    a(href='/deploys/' + vm.app.id + '/forms/' + vm.listing.formId + '?formDataId=' + row._id)= row[vm.listing.fieldLinkingToUpdateForm]
+                                else
+                                    = row[field.title]

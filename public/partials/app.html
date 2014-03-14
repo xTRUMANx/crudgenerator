@@ -52,7 +52,18 @@
 
 <hr/>
 
-<div class="text-center">
-  <a class="btn btn-primary btn-lg" href="#/apps/{{app.id}}/preview">Preview App</a>
-  <a class="btn btn-primary btn-lg" href="#/apps/{{app.id}}/deploy">Deploy App</a>
+<div class="row">
+  <div class="col-sm-4 text-center">
+    <a class="btn btn-info btn-lg" href="#/apps/{{app.id}}/preview">Preview App</a>
+  </div>
+
+  <form class="col-sm-4 text-center" action="/api/deploy?appId={{app.id}}" method="post">
+    <input class="btn btn-warning btn-lg" type="submit" value="Deploy App">
+  </form>
+
+  <div class="col-sm-4 text-center">
+    <a class="btn btn-info btn-lg" href="#/apps/deploy?appId={{app.id}}" ng-class="{ disabled: !app.deployed }">
+      View App
+    </a>
+  </div>
 </div>

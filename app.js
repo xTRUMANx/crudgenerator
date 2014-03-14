@@ -7,6 +7,7 @@ var express = require('express');
 var http = require('http');
 var path = require('path');
 var api = require('./routes/api');
+var deploys = require('./routes/deploys');
 
 var app = express();
 
@@ -31,6 +32,11 @@ if ('development' == app.get('env')) {
 
 app.get('/api/:segment', api["router"]);
 app.post('/api/:segment', api["router"]);
+
+app.get('/deploys/:appId', deploys.appHome);
+app.get('/deploys/:appId/forms/:formId', deploys.appForm);
+app.post('/deploys/:appId/forms/:formId', deploys.saveAppForm);
+app.get('/deploys/:appId/listings/:listingId', deploys.appListing);
 
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));

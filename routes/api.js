@@ -8,8 +8,6 @@ exports.appsGET = function(req, res){
   var id = req.query.id;
 
   if(id){
-    id = Number(id);
-
     db.getApp(id, function(app){
       res.json(app);
     });
@@ -28,8 +26,8 @@ exports.appsPOST = function(req, res){
 };
 
 exports.formsGET = function(req, res){
-  var appId = Number(req.query.appId);
-  var formId = Number(req.query.formId);
+  var appId = req.query.appId;
+  var formId = req.query.formId;
 
   db.getForm(appId, formId, function(form){
     res.json(form);
@@ -37,7 +35,7 @@ exports.formsGET = function(req, res){
 };
 
 exports.formsPOST = function(req, res){
-  var appId = Number(req.query.appId);
+  var appId = req.query.appId;
 
   db.saveForm(appId, req.body, function(){
     res.end();
@@ -45,8 +43,8 @@ exports.formsPOST = function(req, res){
 };
 
 exports.listingsGET = function(req, res){
-  var appId = Number(req.query.appId);
-  var listingId = Number(req.query.listingId);
+  var appId = req.query.appId;
+  var listingId = req.query.listingId;
 
   db.getListing(appId, listingId, function(listing){
     res.json(listing);
@@ -54,7 +52,7 @@ exports.listingsGET = function(req, res){
 };
 
 exports.listingsPOST = function(req, res){
-  var appId = Number(req.query.appId);
+  var appId = req.query.appId;
 
   db.saveListing(appId, req.body, function(){
     res.end()
@@ -62,7 +60,7 @@ exports.listingsPOST = function(req, res){
 };
 
 exports.navLinksGET = function(req, res){
-  var appId = Number(req.query.appId);
+  var appId = req.query.appId;
 
   db.getNavLinks(appId, function(navLinks){
     res.json(navLinks);
@@ -70,9 +68,19 @@ exports.navLinksGET = function(req, res){
 };
 
 exports.navLinksPOST = function(req, res){
-  var appId = Number(req.query.appId);
+  var appId = req.query.appId;
 
   db.saveNavLink(appId, req.body, function(id){
     res.json(id);
+  });
+};
+
+exports.deployPOST = function(req, res){
+  var appId = req.query.appId;
+
+  db.getApp(appId, function(app){
+    db.deployApp(app, function(){
+      res.redirect("/deploys/" + appId);
+    });
   });
 };
