@@ -32,21 +32,21 @@ function createAppFormView(req, res){
     var form = app.forms.filter(function(form) { return form.id === formId; })[0];
     req.locals = req.locals || {};
 
-    if(req.query.formDataId){
+    if(req.query.formDataId && !req.locals.formData){
       db.getFormData(appId, formId, req.query.formDataId, function(formData){
         res.render("appForm", {title: form.name, vm: { app: app, formData: formData, errors: req.locals.errors }, navLinks: topLevelNavLinks, form: form, saved: req.query.saved });
       });
     }
     else{
-      res.render("appForm", {title: form.name, vm: { app: app, formData: {}, errors: req.locals.errors }, navLinks: topLevelNavLinks, form: form, saved: req.query.saved });
+      res.render("appForm", {title: form.name, vm: { app: app, formData: req.locals.formData || {}, errors: req.locals.errors }, navLinks: topLevelNavLinks, form: form, saved: req.query.saved });
     }
   });
 }
 
 exports.saveAppForm = function(req, res){
   // Make model out of form data using Schema
-  var appId = Number(req.params.appId);
-  var formId = Number(req.params.formId);
+  var appId = req.params.appId;
+  var formId = req.params.formId;
 
   db.getFormSchema(appId, formId, function(Schema){
     var formData = new Schema(req.body);
@@ -65,6 +65,7 @@ exports.saveAppForm = function(req, res){
       else{
         req.locals = req.locals || {};
         req.locals.errors = err.errors;
+        req.locals.formData = formData;
 
         createAppFormView(req, res);
       }

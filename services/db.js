@@ -1,6 +1,6 @@
-////////////////////////////////////////
-// This section related to app building/
-////////////////////////////////////////
+//////////////////////////////////////////
+// This section related to app building //
+//////////////////////////////////////////
 
 var apps = [
   {
@@ -65,6 +65,10 @@ exports.saveForm = function(appId, form, cb){
 
     matchingApp.forms[index] = form;
   }
+
+  // TODO: Save form fields in separate collection here.
+  // TODO: Give each field its formId.
+  // TODO: Remove fields out of form before form is saved about.
 
   cb();
 };
@@ -149,9 +153,9 @@ exports.saveNavLink = function(appId, navLink, cb){
   });
 };
 
-/////////////////////////////////////////
-// This section related to deployed apps/
-/////////////////////////////////////////
+///////////////////////////////////////////
+// This section related to deployed apps //
+///////////////////////////////////////////
 
 var mongoose = require('mongoose'),
   Schema = mongoose.Schema,
@@ -320,6 +324,9 @@ exports.getDeployedApp = function(id, cb){
 
 // TODO: Think about whether to move out of db.js into some caching service
 exports.getFormSchema = function(appId, formId, cb){
+  appId = Number(appId);
+  formId = Number(formId);
+
   var schema = appSchemas[appId];
 
   if(!schema){
@@ -339,25 +346,30 @@ exports.getFormSchema = function(appId, formId, cb){
 };
 
 exports.saveFormData = function(appId, formId, formData, id, cb){
-  data[formId] = data[formId] || [];
+  appId = Number(appId);
+  formId = Number(formId);
+
+  data[appId]  = data[appId] || {};
+  var appData = data[appId];
+  appData[formId] = appData[formId] || [];
 
   var index = -1;
 
   if(id) {
-    var row = data[formId].filter(function(r){
+    var row = appData[formId].filter(function(r){
       return r.id === id;
     })[0];
 
     if(row){
-      index = data[formId].indexOf(row);
+      index = appData[formId].indexOf(row);
     }
   }
 
   if(index === -1){
-    data[formId].push(formData);
+    appData[formId].push(formData);
   }
   else{
-    data[formId][index] = formData;
+    appData[formId][index] = formData;
   }
 
   cb();
@@ -366,7 +378,9 @@ exports.saveFormData = function(appId, formId, formData, id, cb){
 exports.getFormData = function(appId, formId, formDataId, cb){
   formId = Number(formId);
 
-  var formData = data[formId] || [];
+  var appData = data[appId] || {};
+
+  var formData = appData[formId] || [];
 
   if(formData.length && formDataId){
     formData = formData.filter(function(fD){
