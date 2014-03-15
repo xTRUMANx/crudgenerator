@@ -1,0 +1,42 @@
+Rename fields without losing data
+    - Fields will require ids so must be stored separately from forms
+Reorder form field
+    - Add move up and move down button below fields list that move the selected field
+    - Send the fields in the order they appear to the server
+    - The server updates field.order based on the index of the field in the array
+    - Whenever the server fetches the field, it order them based on their order property
+Reorder listing columns
+    - Same algorithm as form fields
+Relationships between forms (get select options from form data)
+    - If field.type is options, ask the user if they want to source the data from another form
+    - If not, let them type in option values as they do now
+    - Otherwise, select a form and field
+Add file upload field type
+    - If dev, save locally
+    - else, save on S3
+    - File type and size validation
+Add markdown field type
+    - Will need a angular and node/express/jade friendly markdown editor
+Filter listing
+    - Only show certain rows of listing based on certain field values
+Pagination for listing
+    - Limit amount of items shown in listing by specifying page size
+Present listing by in list by specifying a custom template
+    - User selects fields to show in listing
+    - User selects list format (as opposed to current tabular format)
+    - User select how each field is represented by choosing options (element type, size, etc.)
+Authentication
+    - Lock down whole or part of app behind a login
+    - Requires a way to register user
+    - Let admin decide to allow open registration (with or without approval)
+    - Let admin manage users (activation, password resets)
+Authorization
+    - Mark certain pages as accessible by certain roles
+    - Admin manages roles
+Create pages
+    - Pages are made up of forms and/or listings
+    - Will allow for blog post with comment and form for adding a comment
+Theming
+    - Select a theme
+    - Can start with templates from bootswatch that will simply replace bootstrap.css
+    - Allow for custom css and completely turning off bootstrap

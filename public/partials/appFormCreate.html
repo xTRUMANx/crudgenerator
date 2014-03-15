@@ -31,10 +31,26 @@
         </div>
       </div>
       <div class="form-group">
+        <div class="col-sm-10">
+          <label class="checkbox">
+            <input type="checkbox" ng-disabled="selectedField.optionType === 'radio'" ng-model="selectedField.required"/>
+            Required
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
         <label class="control-label col-sm-2">Type</label>
         <div class="col-sm-10">
           <select class="form-control" ng-model="selectedField.type"
                   ng-options="type for type in types"></select>
+        </div>
+      </div>
+      <div class="form-group" ng-if="selectedField.type === 'text'">
+        <div class="col-sm-10">
+          <label class="checkbox">
+            <input type="checkbox" ng-model="selectedField.multipleLine"/>
+            Multiple Lines
+          </label>
         </div>
       </div>
       <div class="form-group" ng-if="selectedField.type === 'options'">
@@ -66,7 +82,8 @@
   <div class="form-group col-sm-6" ng-repeat="field in form.fields">
     <label class="col-sm-3 control-label" for="{{field.title}}" ng-if="field.type !== 'boolean'">{{field.title}}</label>
     <div class="col-sm-9">
-      <input class="form-control" type="text" name="{{field.title}}" ng-model="field.value" ng-if="field.type === 'string'" />
+      <input class="form-control" type="text" name="{{field.title}}" ng-model="field.value" ng-if="field.type === 'text' && !field.multipleLine" />
+      <textarea class="form-control" rows="3" name="{{field.title}}" ng-model="field.value" ng-if="field.type === 'text' && field.multipleLine"></textarea>
       <input class="form-control" type="number" name="{{field.title}}" ng-model="field.value" ng-if="field.type === 'number'" />
       <input class="form-control" type="date" name="{{field.title}}" ng-model="field.value" ng-if="field.type === 'date'" />
       <label class="checkbox" ng-if="field.type === 'boolean'">

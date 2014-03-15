@@ -27,36 +27,40 @@
   </div>
 </nav>
 
-<form class="form-horizontal" ng-if="selectedNavLink.linkTarget.type === 'Forms'">
+<form name="form" class="form-horizontal" ng-if="selectedNavLink.linkTarget.type === 'Forms'"
+      ng-submit="saveForm(obj)" >
   <h2>{{obj.name}}</h2>
   <div class="form-group col-sm-6" ng-repeat="field in obj.fields">
     <label class="col-sm-3 control-label" for="{{field.title}}" ng-if="field.type !== 'boolean'">{{field.title}}</label>
     <div class="col-sm-9">
-      <input class="form-control" type="text" name="{{field.title}}" ng-model="field.value" ng-if="field.type === 'string'" />
-      <input class="form-control" type="number" name="{{field.title}}" ng-model="field.value" ng-if="field.type === 'number'" />
-      <input class="form-control" type="date" name="{{field.title}}" ng-model="field.value" ng-if="field.type === 'date'" />
+      <input class="form-control" type="text" name="{{field.title}}" ng-model="field.value" ng-required="field.required" ng-if="field.type === 'text' && !field.multipleLine" />
+      <textarea class="form-control" rows="3" name="{{field.title}}" ng-model="field.value" ng-required="field.required" ng-if="field.type === 'text' && field.multipleLine"></textarea>
+      <input class="form-control" type="number" name="{{field.title}}" ng-model="field.value" ng-required="field.required" ng-if="field.type === 'number'" />
+      <input class="form-control" type="date" name="{{field.title}}" ng-model="field.value" ng-required="field.required" ng-if="field.type === 'date'" />
       <label class="checkbox" ng-if="field.type === 'boolean'">
         <input type="checkbox" name="{{field.title}}" ng-model="field.value" />
         {{field.title}}
       </label>
       <label class="radio-inline" ng-if="field.type === 'options' && field.optionType === 'radio'"
              ng-repeat="option in split(field.options)">
-        <input type="radio" value="{{option}}" ng-model="field.value" />
+        <input type="radio" value="{{option}}" ng-required="field.required" ng-model="field.value" />
         {{option}}
       </label>
       <label class="checkbox-inline" ng-if="field.type === 'options' && field.optionType === 'checkbox'"
              ng-repeat="option in split(field.options)">
-        <input type="checkbox" checklist-model="field.value" checklist-value="option" />
+        <input type="checkbox" checklist-model="field.value" ng-required="field.required" checklist-value="option" />
         {{option}}
       </label>
-      <select class="form-control" ng-model="field.value" ng-if="field.type === 'options' && field.optionType === 'select'"
+      <select class="form-control" ng-model="field.value" ng-required="field.required"
+              ng-if="field.type === 'options' && field.optionType === 'select'"
               ng-options="option for option in split(field.options)"></select>
-      <select class="form-control" multiple ng-model="field.value" ng-if="field.type === 'options' && field.optionType === 'multi-select'"
+      <select class="form-control" multiple ng-model="field.value" ng-required="field.required"
+              ng-if="field.type === 'options' && field.optionType === 'multi-select'"
               ng-options="option for option in split(field.options)"></select>
     </div>
   </div>
   <div class="form-group col-sm-9">
-    <input class="btn btn-primary" value="Save" ng-click="saveForm(obj)" />
+    <input class="btn btn-primary" type="submit" value="Save" ng-disabled="!form.$valid"/>
   </div>
 </form>
 

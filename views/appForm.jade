@@ -19,31 +19,34 @@ block content
                 if field.type !== 'boolean'
                     label.col-sm-3.control-label(for=field.title)= field.title
                 .col-sm-9
-                    if field.type === 'string'
+                    if field.type === 'text' && !field.multipleLine
                         input.form-control(type="text", name=field.title, value=vm.formData[field.title])
-                    if field.type === 'number'
+                    else if field.type === 'text' && field.multipleLine
+                        textarea.form-control(rows="3", name=field.title, value=vm.formData[field.title])
+                    else if field.type === 'number'
                         input.form-control(type="number", name=field.title, value=vm.formData[field.title])
-                    if field.type === 'date'
+                    else if field.type === 'date'
                         input.form-control(type="date", name=field.title, value=vm.formData[field.title])
-                    if field.type === 'boolean'
+                    else if field.type === 'boolean'
                         label.checkbox
                             input(type='checkbox', name=field.title)
                             = field.title
-                    if field.type === 'options' && field.optionType === 'radio'
+                    else if field.type === 'options' && field.optionType === 'radio'
                         each option in field.options.split("\n")
                             label.radio-inline
                                 input(type='radio', name=field.title, value=option)
                                 = option
-                    if field.type === 'options' && field.optionType === 'checkbox'
+                    else if field.type === 'options' && field.optionType === 'checkbox'
                         each option in field.options.split("\n")
                             label.checkbox-inline
                                 input(type='checkbox', name=field.title, value=option)
                                 = option
-                    if field.type === 'options' && field.optionType === 'select'
+                    else if field.type === 'options' && field.optionType === 'select'
                         select.form-control(name=field.title)
+                            option
                             each option in field.options.split("\n")
                                 option= option
-                    if field.type === 'options' && field.optionType === 'multi-select'
+                    else if field.type === 'options' && field.optionType === 'multi-select'
                         select.form-control(name=field.title,multiple='multiple')
                             each option in field.options.split("\n")
                                 option= option

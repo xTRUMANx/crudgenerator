@@ -21,8 +21,14 @@ appModule.controller("AppFormCreateCtrl", function($scope, $routeParams, $locati
     $scope.selectedField = $scope.form.fields[0];
   }
 
-  $scope.types = ["string", "number", "date", "boolean", "options"];
+  $scope.types = ["text", "number", "date", "boolean", "options"];
   $scope.optionTypes = ["radio", "checkbox", "select", "multi-select"];
+
+  $scope.$watch("selectedField.optionType", function(newValue){
+    if(newValue === "radio") {
+      $scope.selectedField.required = true;
+    }
+  });
 
   $scope.validateForm = function() {
     return $scope.form && $scope.form.name && $scope.form.fields.length && $scope.form.fields.filter(function(field){

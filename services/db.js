@@ -6,7 +6,7 @@ var apps = [
   {
     id: 1,
     title: "Example App",
-    forms: [{"fields":[{"title":"String Field","type":"string"},{"title":"Number Field","type":"number"},{"title":"Date Field","type":"date"},{"title":"Boolean Field","type":"boolean"},{"title":"Radio Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"radio"},{"title":"Checkbox Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"checkbox"},{"title":"Select Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"select"},{"title":"Multi-Select Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"multi-select"}],"name":"Example Form","id":1}],
+    forms: [{"fields":[{"title":"String Field","type":"text", required: true},{"title":"Number Field","type":"number"},{"title":"Date Field","type":"date"},{"title":"Boolean Field","type":"boolean"},{"title":"Radio Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"radio"},{"title":"Checkbox Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"checkbox"},{"title":"Select Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"select"},{"title":"Multi-Select Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"multi-select"}],"name":"Example Form","id":1}],
     listings: [{"fields":{"String Field":true,"Number Field":true,"Date Field":true,"Boolean Field":true,"Radio Options Field":true,"Checkbox Options Field":true,"Select Options Field":false,"Multi-Select Options Field":false},"name":"Example Listing","formId":1,"linkToUpdateForm":"useField","fieldLinkingToUpdateForm":"String Field","id":1}],
     navLinks: [{"text":"Examples","type":"dropdown","id":1},{"text":"Example Form","type":"link","linkTarget":{"name":"Example Form","id":1,"type":"Forms"},"parentId":1,"id":2},{"text":"Example Listing","type":"link","linkTarget":{"name":"Example Listing","id":1,"type":"Listings"},"parentId":1,"id":3}, {"text":"Example Form","type":"link","linkTarget":{"name":"Example Form","id":1,"type":"Forms"},"id":4},{"text":"Example Listing","type":"link","linkTarget":{"name":"Example Listing","id":1,"type":"Listings"},"id":5}]
   }
@@ -174,17 +174,17 @@ function generateSchema(form){
 
   form.fields.forEach(function(field){
     switch (field.type){
-      case "string":
-        schema[field.title] = { type: String };
+      case "text":
+        schema[field.title] = { type: String, required: field.required ? "{PATH} is required." : false };
         break;
       case "number":
-        schema[field.title] = { type: Number };
+        schema[field.title] = { type: Number, required: field.required ? "{PATH} is required." : false };
         break;
       case "date":
-        schema[field.title] = { type: Date };
+        schema[field.title] = { type: Date, required: field.required ? "{PATH} is required." : false };
         break;
       case "boolean":
-        schema[field.title] = { type: Boolean };
+        schema[field.title] = { type: Boolean, required: field.required ? "{PATH} is required." : false };
         break;
       case "options":
         switch (field.optionType){
@@ -192,11 +192,11 @@ function generateSchema(form){
             schema[field.title] = { type: String, required: "{PATH} is required." };
             break;
           case "select":
-            schema[field.title] = { type: String };
+            schema[field.title] = { type: String, required: field.required ? "{PATH} is required." : false };
             break;
           case "checkbox":
           case "multi-select":
-            schema[field.title] = { type: [String] };
+            schema[field.title] = { type: [String], required: field.required ? "{PATH} is required." : false };
             break;
           default:
             throw new Error("Found unknown field optionType when generating schema.");
@@ -305,6 +305,7 @@ exports.deployApp = function(app, cb){
   }
 
   deployedApps[app.id] = copy(app);
+  appSchemas[app.id] = null;
 
   cb();
 };

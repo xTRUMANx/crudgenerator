@@ -68,7 +68,7 @@ appModule.controller("AppListingCreateCtrl", function($scope, $routeParams, $loc
 
   $scope.sampleValue = function(field){
     switch (field.type) {
-      case "string": return "Sample Value";
+      case "text": return "Sample Value";
       case "number": return 42;
       case "date": return new Date().toDateString();
       case "boolean": return "Yes";
