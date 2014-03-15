@@ -38,7 +38,7 @@ function createAppFormView(req, res){
       });
     }
     else{
-      res.render("appForm", {title: form.name, vm: { app: app, formData: req.locals.formData || {}, errors: req.locals.errors }, navLinks: topLevelNavLinks, form: form, saved: req.query.saved });
+      res.render("appForm", {title: form.title, vm: { app: app, formData: req.locals.formData || {}, errors: req.locals.errors }, navLinks: topLevelNavLinks, form: form, saved: req.query.saved });
     }
   });
 }
@@ -98,7 +98,7 @@ exports.appListing = function(req, res){
 
             var vm = { app: app, listing: listing, data: data, listingFields: listingFields };
 
-            res.render("appListing", { title: "Listing", vm: vm, navLinks: topLevelNavLinks });
+            res.render("appListing", { title: listing.title, vm: vm, navLinks: topLevelNavLinks });
           });
         });
       });

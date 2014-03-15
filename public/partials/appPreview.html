@@ -29,7 +29,7 @@
 
 <form name="form" class="form-horizontal" ng-if="selectedNavLink.linkTarget.type === 'Forms'"
       ng-submit="saveForm(obj)" >
-  <h2>{{obj.name}}</h2>
+  <h2>{{obj.title}}</h2>
   <div class="form-group col-sm-6" ng-repeat="field in obj.fields">
     <label class="col-sm-3 control-label" for="{{field.title}}" ng-if="field.type !== 'boolean'">{{field.title}}</label>
     <div class="col-sm-9">

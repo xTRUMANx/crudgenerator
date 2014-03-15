@@ -1,5 +1,5 @@
 <h1 class="text-center">
-  <a href="#/apps">Apps</a> > {{app.title}}
+  <a href="#/apps">Apps</a> &gt; {{app.title}}
 </h1>
 
 <div class="text-center" ng-hide="app">
@@ -13,7 +13,7 @@
     <ul class="list-unstyled" ng-show="app.forms">
       <li ng-repeat="form in app.forms">
         <a href="#/apps/{{appId}}/forms/update/{{form.id}}">
-          {{form.name}}
+          {{form.title}}
         </a>
       </li>
     </ul>
@@ -25,7 +25,7 @@
     <ul class="list-unstyled" ng-show="app.listings">
       <li ng-repeat="listing in app.listings">
         <a href="#/apps/{{appId}}/listings/update/{{listing.id}}">
-          {{listing.name}}
+          {{listing.title}}
         </a>
       </li>
     </ul>

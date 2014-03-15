@@ -1,5 +1,5 @@
 <h1 class="text-center">
-  <a href="#/apps">Apps</a> > <a href="#/apps/{{app.id}}">{{app.title}}</a> > Forms > Create
+  <a href="#/apps">Apps</a> &gt; <a href="#/apps/{{app.id}}">{{app.title}}</a> &gt; Create Form
 </h1>
 
 <div class="text-center" ng-hide="app">
@@ -8,9 +8,9 @@
 
 <form class="form-horizontal clearfix" ng-show="app" ng-submit="save(form)">
   <div class="form-group">
-    <label class="control-label col-sm-2">Name</label>
+    <label class="control-label col-sm-2">Form Title</label>
     <div class="col-sm-6">
-      <input class="form-control" type="text" required ng-model="form.name"/>
+      <input class="form-control" type="text" required ng-model="form.title"/>
     </div>
     <input class="btn btn-primary" type="submit" value="Save Form" ng-disabled="!validateForm()" />
   </div>
@@ -78,7 +78,7 @@
 <hr/>
 
 <form class="form-horizontal">
-  <h2>{{form.name}}</h2>
+  <h2>{{form.title}}</h2>
   <div class="form-group col-sm-6" ng-repeat="field in form.fields">
     <label class="col-sm-3 control-label" for="{{field.title}}" ng-if="field.type !== 'boolean'">{{field.title}}</label>
     <div class="col-sm-9">

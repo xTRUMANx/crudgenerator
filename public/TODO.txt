@@ -1,5 +1,4 @@
 Use a different validator instead of mongoose (perhaps validator.js/express-validator)
-Rename name property of forms and listings to title for consistency
 Do not allow form fields to have duplicate titles
 Rename fields without losing data
     - Fields will require ids so must be stored separately from forms

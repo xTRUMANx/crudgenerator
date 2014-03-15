@@ -5,7 +5,7 @@ block content
     if saved
         .alert.alert-success Successfully saved form.
 
-    h2= form.name
+    h2= form.title
 
     form.form-horizontal(method='post', action='/deploys/' + vm.app.id + '/forms/' + form.id)
         if(vm.errors)

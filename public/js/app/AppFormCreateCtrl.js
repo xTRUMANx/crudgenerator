@@ -31,7 +31,7 @@ appModule.controller("AppFormCreateCtrl", function($scope, $routeParams, $locati
   });
 
   $scope.validateForm = function() {
-    return $scope.form && $scope.form.name && $scope.form.fields.length && $scope.form.fields.filter(function(field){
+    return $scope.form && $scope.form.title && $scope.form.fields.length && $scope.form.fields.filter(function(field){
       return !!field.title && !!field.type && !(field.type === 'options' && !(field.optionType && field.options))
     }).length === $scope.form.fields.length;
   };

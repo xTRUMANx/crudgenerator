@@ -51,7 +51,7 @@
     </label>
     <div class="col-sm-6">
       <select class="form-control" ng-model="navLink.linkTarget"
-              ng-options="linkTarget as linkTarget.name group by linkTarget.type for linkTarget in linkTargets track by linkTarget.type + '.' + linkTarget.id">
+              ng-options="linkTarget as linkTarget.title group by linkTarget.type for linkTarget in linkTargets track by linkTarget.type + '.' + linkTarget.id">
       </select>
     </div>
   </div>
