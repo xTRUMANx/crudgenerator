@@ -31,7 +31,25 @@ appModule.controller("AppFormCreateCtrl", function($scope, $routeParams, $locati
   });
 
   $scope.validateForm = function() {
-    return $scope.form && $scope.form.title && $scope.form.fields.length && $scope.form.fields.filter(function(field){
+    function hasUniqueTitles(fields) {
+      var valid = true;
+
+      for(var i = 0; i < fields.length; i++) {
+        for(var j = 0; j < fields.length; j++) {
+          if(i == j) continue;
+          if(fields[i].title === fields[j].title) {
+            $scope.duplicateTitle = fields[i].title;
+            valid = false;
+            break;
+          }
+        }
+        if(!valid) break;
+      }
+
+      return valid;
+    }
+
+    return $scope.form && $scope.form.title && $scope.form.fields.length && hasUniqueTitles($scope.form.fields) && $scope.form.fields.filter(function(field){
       return !!field.title && !!field.type && !(field.type === 'options' && !(field.optionType && field.options))
     }).length === $scope.form.fields.length;
   };
