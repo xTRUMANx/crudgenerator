@@ -18,10 +18,10 @@ block content
                     tr
                         if vm.listing.linkToUpdateForm === 'separateColumn'
                             td
-                                a(href='/deploys/' + vm.app.id + '/forms/' + vm.listing.formId + '?formDataId=' + row._id) Details
+                                a(href='/deploys/' + vm.app.id + '/forms/' + vm.listing.formId + '?formDataId=' + row.id) Details
                         each field in vm.listingFields
                             td
                                 if vm.listing.linkToUpdateForm === 'useField' && vm.listing.fieldLinkingToUpdateForm === field.title
-                                    a(href='/deploys/' + vm.app.id + '/forms/' + vm.listing.formId + '?formDataId=' + row._id)= row[vm.listing.fieldLinkingToUpdateForm]
+                                    a(href='/deploys/' + vm.app.id + '/forms/' + vm.listing.formId + '?formDataId=' + row.id)= row[vm.listing.fieldLinkingToUpdateForm]
                                 else
                                     = row[field.title]

@@ -8,6 +8,7 @@ var http = require('http');
 var path = require('path');
 var api = require('./routes/api');
 var deploys = require('./routes/deploys');
+var expressValidator = require('express-validator');
 
 var app = express();
 
@@ -22,6 +23,7 @@ app.use(express.urlencoded());
 app.use(express.methodOverride());
 app.use(express.cookieParser('your secret here'));
 app.use(express.session());
+app.use(expressValidator());
 app.use(app.router);
 app.use(express.static(path.join(__dirname, 'public')));
 

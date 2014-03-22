@@ -1,4 +1,20 @@
-var db = require('../services/db');
+var db = require('../services/db'),
+  expressValidator = require('express-validator');
+
+expressValidator.validator.isSubset = function(value, array) {
+  if (!Array.isArray(value)) {
+    return array.indexOf(expressValidator.validator.toString(value)) >= 0;
+  }
+  else{
+    var res = true;
+
+    value.forEach(function(v){
+      res = res && expressValidator.validator.isIn(v, array);
+    });
+
+    return res;
+  }
+};
 
 exports.appHome = function(req, res){
   var appId = req.params.appId;
@@ -47,38 +63,84 @@ exports.saveAppForm = function(req, res){
   // Make model out of form data using Schema
   var appId = req.params.appId;
   var formId = req.params.formId;
+  var formData = req.body;
 
-  db.getFormSchema(appId, formId, function(Schema){
-    var formData = new Schema(req.body);
+  validateForm(appId, formId, req, function(err){
+    if(!err.length) {
+      // if valid, pass to db.saveForm
 
-    // Validate model
-    formData.validate(function(err){
-      if(!err) {
-        // if valid, pass to db.saveForm
+      db.saveFormData(appId, formId, formData, req.body.id, function(){
+        var url = "/deploys/" + appId + "/forms/" + formId.toString() + "?saved=true";
 
-        db.saveFormData(appId, formId, formData, req.body._id, function(){
-          var url = "/deploys/" + appId + "/forms/" + formId.toString() + "?saved=true";
+        res.redirect(url);
+      });
+    }
+    else{
+      req.locals = req.locals || {};
+      req.locals.errors = err;
+      req.locals.formData = formData;
 
-          res.redirect(url);
-        });
-      }
-      else{
-        req.locals = req.locals || {};
-        req.locals.errors = err.errors;
-        req.locals.formData = formData;
-
-        createAppFormView(req, res);
-      }
-    });
+      createAppFormView(req, res);
+    }
   });
 };
 
+function validateForm(appId, formId, req, cb){
+  var errors = [];
+  db.getForm(appId, formId, function(form){
+    if(!form) {
+      errors.push({msg: "Form not found."});
+    }
+    else{
+      form.fields.forEach(function(field){
+        if((field.required || (field.type === 'options' && field.optionType === 'radio')) && !req.body[field.title]) {
+          errors.push({param: field.title, msg: field.title + " is required."});
+          return;
+        }
+
+        switch (field.type){
+          case "number":
+            if(req.body[field.title]) {
+              req.checkBody(field.title, field.title + " must be a number.").isNumeric();
+            }
+            break;
+          case "date":
+            if(req.body[field.title]) {
+              req.checkBody(field.title, field.title + " must be a date.").isDate();
+            }
+            break;
+          case "boolean":
+            if(req.body[field.title]) {
+              req.body[field.title] = expressValidator.validator.toBoolean(req.body[field.title]);
+            }
+            break;
+          case "options":
+            if(req.body[field.title]) {
+              var options = field.options.split("\n");
+
+              req.checkBody(field.title, field.title + " must be one of the options in the list.").isSubset(options);
+            }
+            break;
+          default :
+            break;
+        }
+      });
+
+      var validationErrors = req.validationErrors();
+
+      var err = validationErrors ? errors.concat(validationErrors) : errors;
+
+      cb(err);
+    }
+  });
+}
+
 exports.appListing = function(req, res){
   // Get listing
-  var appId = Number(req.params.appId);
-  var listingId = Number(req.params.listingId);
+  var appId = req.params.appId;
+  var listingId = req.params.listingId;
 
-  var listing= db.getListing(appId, listingId, function(listing){
+  var listing= db.getDeployedListing(appId, listingId, function(listing){
     if(listing){
       // Get listing data
       db.getFormData(appId, listing.formId, null, function(data){

@@ -157,159 +157,13 @@ exports.saveNavLink = function(appId, navLink, cb){
 // This section related to deployed apps //
 ///////////////////////////////////////////
 
-var mongoose = require('mongoose'),
-  Schema = mongoose.Schema,
-  deployedApps = {},
-  data = {},
-  appSchemas = {};
-
-function generateSchemas(app){
-  var schemas = {};
-
-  app.forms.map(function(form){
-    schemas[form.id] = generateSchema(form);
-  });
-
-  return schemas;
-}
-
-function generateSchema(form){
-  var schema = {};
-
-  form.fields.forEach(function(field){
-    switch (field.type){
-      case "text":
-        schema[field.title] = { type: String, required: field.required ? "{PATH} is required." : false };
-        break;
-      case "number":
-        schema[field.title] = { type: Number, required: field.required ? "{PATH} is required." : false };
-        break;
-      case "date":
-        schema[field.title] = { type: Date, required: field.required ? "{PATH} is required." : false };
-        break;
-      case "boolean":
-        schema[field.title] = { type: Boolean, required: field.required ? "{PATH} is required." : false };
-        break;
-      case "options":
-        switch (field.optionType){
-          case "radio":
-            schema[field.title] = { type: String, required: "{PATH} is required." };
-            break;
-          case "select":
-            schema[field.title] = { type: String, required: field.required ? "{PATH} is required." : false };
-            break;
-          case "checkbox":
-          case "multi-select":
-            schema[field.title] = { type: [String], required: field.required ? "{PATH} is required." : false };
-            break;
-          default:
-            throw new Error("Found unknown field optionType when generating schema.");
-        }
-        break;
-      default:
-        throw new Error("Found unknown field type when generating schema.");
-    }
-  });
-
-  return mongoose.model(form.id.toString(), new Schema(schema), form.id.toString(), { cache: false });
-}
+var deployedApps = {1: {"id":1,"title":"Example App","forms":[{"fields":[{"title":"String Field","type":"text","required":true},{"title":"Number Field","type":"number"},{"title":"Date Field","type":"date"},{"title":"Boolean Field","type":"boolean"},{"title":"Radio Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"radio"},{"title":"Checkbox Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"checkbox"},{"title":"Select Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"select"},{"title":"Multi-Select Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"multi-select"}],"title":"Example Form","id":1}],"listings":[{"fields":{"String Field":true,"Number Field":true,"Date Field":true,"Boolean Field":true,"Radio Options Field":true,"Checkbox Options Field":true,"Select Options Field":false,"Multi-Select Options Field":false},"title":"Example Listing","formId":1,"linkToUpdateForm":"useField","fieldLinkingToUpdateForm":"String Field","id":1}],"navLinks":[{"text":"Examples","type":"dropdown","id":1},{"text":"Example Form","type":"link","linkTarget":{"name":"Example Form","id":1,"type":"Forms"},"parentId":1,"id":2},{"text":"Example Listing","type":"link","linkTarget":{"name":"Example Listing","id":1,"type":"Listings"},"parentId":1,"id":3},{"text":"Example Form","type":"link","linkTarget":{"name":"Example Form","id":1,"type":"Forms"},"id":4},{"text":"Example Listing","type":"link","linkTarget":{"name":"Example Listing","id":1,"type":"Listings"},"id":5}]}},
+  data = {};
 
 exports.deployApp = function(app, cb){
-  function copy(source, destination){
-    var toString = Object.prototype.toString;
-
-    function isArray(value) {
-      return toString.apply(value) == '[object Array]';
-    }
-
-    function isDate(value){
-      return toString.apply(value) == '[object Date]';
-    }
-
-    function isObject(value){return value != null && typeof value == 'object';}
-
-    function isRegExp(value) {
-      return toString.apply(value) == '[object RegExp]';
-    }
-
-    function isFunction(value){return typeof value == 'function';}
-
-    function isArrayLike(obj) {
-      if (obj == null) {
-        return false;
-      }
-
-      var length = obj.length;
-
-      if (obj.nodeType === 1 && length) {
-        return true;
-      }
-
-      return isString(obj) || isArray(obj) || length === 0 ||
-        typeof length === 'number' && length > 0 && (length - 1) in obj;
-    }
-
-    function isString(value){return typeof value == 'string';}
-
-    function forEach(obj, iterator, context) {
-      var key;
-      if (obj) {
-        if (isFunction(obj)){
-          for (key in obj) {
-            if (key != 'prototype' && key != 'length' && key != 'name' && obj.hasOwnProperty(key)) {
-              iterator.call(context, obj[key], key);
-            }
-          }
-        } else if (obj.forEach && obj.forEach !== forEach) {
-          obj.forEach(iterator, context);
-        } else if (isArrayLike(obj)) {
-          for (key = 0; key < obj.length; key++)
-            iterator.call(context, obj[key], key);
-        } else {
-          for (key in obj) {
-            if (obj.hasOwnProperty(key)) {
-              iterator.call(context, obj[key], key);
-            }
-          }
-        }
-      }
-      return obj;
-    }
-
-    if (!destination) {
-      destination = source;
-      if (source) {
-        if (isArray(source)) {
-          destination = copy(source, []);
-        } else if (isDate(source)) {
-          destination = new Date(source.getTime());
-        } else if (isRegExp(source)) {
-          destination = new RegExp(source.source);
-        } else if (isObject(source)) {
-          destination = copy(source, {});
-        }
-      }
-    } else {
-      if (source === destination) throw Error("Can't copy! Source and destination are identical.");
-      if (isArray(source)) {
-        destination.length = 0;
-        for ( var i = 0; i < source.length; i++) {
-          destination.push(copy(source[i]));
-        }
-      } else {
-        forEach(destination, function(value, key){
-          delete destination[key];
-        });
-        for ( var key in source) {
-          destination[key] = copy(source[key]);
-        }
-      }
-    }
-    return destination;
-  }
+  var copy = require("../utils").copy;
 
   deployedApps[app.id] = copy(app);
-  appSchemas[app.id] = null;
 
   cb();
 };
@@ -322,60 +176,57 @@ exports.getDeployedApp = function(id, cb){
   cb(app);
 };
 
-// TODO: Think about whether to move out of db.js into some caching service
-exports.getFormSchema = function(appId, formId, cb){
-  appId = Number(appId);
-  formId = Number(formId);
+exports.getDeployedListing = function(appId, listingId, cb){
+  //appId = Number(appId);
+  listingId = Number(listingId);
 
-  var schema = appSchemas[appId];
+  exports.getDeployedApp(appId, function(app){
+    if(app){
+      var listing = app.listings.filter(function(listing) { return listing.id === listingId; })[0];
 
-  if(!schema){
-    exports.getApp(appId, function(app){
-      var schemas = generateSchemas(app);
-
-      appSchemas[app.id] = schemas;
-
-      schema = schemas[formId];
-
-      cb(schema);
-    })
-  }
-  else{
-    cb(schema[formId]);
-  }
+      cb(listing);
+    }
+    else {
+      cb();
+    }
+  });
 };
 
 exports.saveFormData = function(appId, formId, formData, id, cb){
   appId = Number(appId);
   formId = Number(formId);
 
-  data[appId]  = data[appId] || {};
+  data[appId]  = data[appId] || { nextId: 1 };
   var appData = data[appId];
   appData[formId] = appData[formId] || [];
 
   var index = -1;
 
   if(id) {
+    id = Number(id);
+
     var row = appData[formId].filter(function(r){
       return r.id === id;
     })[0];
 
     if(row){
       index = appData[formId].indexOf(row);
+
+      formData.id = id;
+
+      appData[formId][index] = formData;
     }
   }
-
-  if(index === -1){
-    appData[formId].push(formData);
-  }
   else{
-    appData[formId][index] = formData;
+    formData.id = appData.nextId++;
+    appData[formId].push(formData);
   }
 
   cb();
 };
 
 exports.getFormData = function(appId, formId, formDataId, cb){
+  appId = Number(appId);
   formId = Number(formId);
 
   var appData = data[appId] || {};
@@ -383,6 +234,8 @@ exports.getFormData = function(appId, formId, formDataId, cb){
   var formData = appData[formId] || [];
 
   if(formData.length && formDataId){
+    formDataId = Number(formDataId);
+
     formData = formData.filter(function(fD){
       return fD.id === formDataId;
     })[0];

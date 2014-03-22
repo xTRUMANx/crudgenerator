@@ -11,9 +11,9 @@ block content
         if(vm.errors)
             ul.text-danger
                 each error in vm.errors
-                    li= error.message
-        if(vm.formData._id)
-            input.form-control(type="hidden", name='_id', value=vm.formData._id)
+                    li= error.msg
+        if(vm.formData && vm.formData.id)
+            input.form-control(type="hidden", name='id', value=vm.formData.id)
         each field in form.fields
             .form-group.col-sm-6
                 if field.type !== 'boolean'
