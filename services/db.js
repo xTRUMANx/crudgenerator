@@ -6,8 +6,8 @@ var apps = [
   {
     id: 1,
     title: "Example App",
-    forms: [{"fields":[{"title":"String Field","type":"text", required: true},{"title":"Number Field","type":"number"},{"title":"Date Field","type":"date"},{"title":"Boolean Field","type":"boolean"},{"title":"Radio Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"radio"},{"title":"Checkbox Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"checkbox"},{"title":"Select Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"select"},{"title":"Multi-Select Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"multi-select"}],"title":"Example Form","id":1}],
-    listings: [{"fields":{"String Field":true,"Number Field":true,"Date Field":true,"Boolean Field":true,"Radio Options Field":true,"Checkbox Options Field":true,"Select Options Field":false,"Multi-Select Options Field":false},"title":"Example Listing","formId":1,"linkToUpdateForm":"useField","fieldLinkingToUpdateForm":"String Field","id":1}],
+    forms: [{"fields":[{"title":"String Field","type":"text","required":true,"id":"1"},{"title":"Number Field","type":"number","id":"2"},{"title":"Date Field","type":"date","id":"3"},{"title":"Boolean Field","type":"boolean","id":"4"},{"title":"Radio Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"radio","id":"5"},{"title":"Checkbox Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"checkbox","id":"6"},{"title":"Select Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"select","id":"7"},{"title":"Multi-Select Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"multi-select","id":"8"}],"title":"Example Form","id":1,"nextFieldId":9}],
+    listings: [{"fields":{"1":true,"2":true,"3":true,"4":true,"5":true,"6":true,"7":false,"8":false},"title":"Example Listing","formId":1,"linkToUpdateForm":"useField","fieldLinkingToUpdateForm":"1","id":1}],
     navLinks: [{"text":"Examples","type":"dropdown","id":1},{"text":"Example Form","type":"link","linkTarget":{"name":"Example Form","id":1,"type":"Forms"},"parentId":1,"id":2},{"text":"Example Listing","type":"link","linkTarget":{"name":"Example Listing","id":1,"type":"Listings"},"parentId":1,"id":3}, {"text":"Example Form","type":"link","linkTarget":{"name":"Example Form","id":1,"type":"Forms"},"id":4},{"text":"Example Listing","type":"link","linkTarget":{"name":"Example Listing","id":1,"type":"Listings"},"id":5}]
   }
 ];
@@ -56,19 +56,30 @@ exports.saveForm = function(appId, form, cb){
 
   if(!form.id) {
     form.id = (matchingApp.forms[matchingApp.forms.length - 1] || {id : 0}).id + 1;
+
+    form.nextFieldId = 1;
+
+    form.fields.forEach(function(field){
+      field.id = form.nextFieldId++ + '';
+    });
+
     matchingApp.forms.push(form);
   }
   else {
     var oldForm = matchingApp.forms.filter(function(f) { return f.id === form.id; })[0];
 
+    form.fields.forEach(function(field){
+      if(!field.id || !oldForm.fields.filter(function(f){ return f.id === field.id; }).length) {
+        field.id = oldForm.nextFieldId++ + '';
+      }
+    });
+
+    form.nextFieldId = oldForm.nextFieldId;
+
     var index = matchingApp.forms.indexOf(oldForm);
 
     matchingApp.forms[index] = form;
   }
-
-  // TODO: Save form fields in separate collection here.
-  // TODO: Give each field its formId.
-  // TODO: Remove fields out of form before form is saved about.
 
   cb();
 };
@@ -157,7 +168,7 @@ exports.saveNavLink = function(appId, navLink, cb){
 // This section related to deployed apps //
 ///////////////////////////////////////////
 
-var deployedApps = {1: {"id":1,"title":"Example App","forms":[{"fields":[{"title":"String Field","type":"text","required":true},{"title":"Number Field","type":"number"},{"title":"Date Field","type":"date"},{"title":"Boolean Field","type":"boolean"},{"title":"Radio Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"radio"},{"title":"Checkbox Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"checkbox"},{"title":"Select Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"select"},{"title":"Multi-Select Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"multi-select"}],"title":"Example Form","id":1}],"listings":[{"fields":{"String Field":true,"Number Field":true,"Date Field":true,"Boolean Field":true,"Radio Options Field":true,"Checkbox Options Field":true,"Select Options Field":false,"Multi-Select Options Field":false},"title":"Example Listing","formId":1,"linkToUpdateForm":"useField","fieldLinkingToUpdateForm":"String Field","id":1}],"navLinks":[{"text":"Examples","type":"dropdown","id":1},{"text":"Example Form","type":"link","linkTarget":{"name":"Example Form","id":1,"type":"Forms"},"parentId":1,"id":2},{"text":"Example Listing","type":"link","linkTarget":{"name":"Example Listing","id":1,"type":"Listings"},"parentId":1,"id":3},{"text":"Example Form","type":"link","linkTarget":{"name":"Example Form","id":1,"type":"Forms"},"id":4},{"text":"Example Listing","type":"link","linkTarget":{"name":"Example Listing","id":1,"type":"Listings"},"id":5}]}},
+var deployedApps = {1: {"id":1,"title":"Example App","forms":[{"fields":[{"title":"String Field","type":"text","required":true,"id":"1"},{"title":"Number Field","type":"number","id":"2"},{"title":"Date Field","type":"date","id":"3"},{"title":"Boolean Field","type":"boolean","id":"4"},{"title":"Radio Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"radio","id":"5"},{"title":"Checkbox Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"checkbox","id":"6"},{"title":"Select Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"select","id":"7"},{"title":"Multi-Select Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"multi-select","id":"8"}],"title":"Example Form","id":1,"nextFieldId":9}],"listings":[{"fields":{"1":true,"2":true,"3":true,"4":true,"5":true,"6":true,"7":false,"8":false},"title":"Example Listing","formId":1,"linkToUpdateForm":"useField","fieldLinkingToUpdateForm":"1","id":1}],"navLinks":[{"text":"Examples","type":"dropdown","id":1},{"text":"Example Form","type":"link","linkTarget":{"name":"Example Form","id":1,"type":"Forms"},"parentId":1,"id":2},{"text":"Example Listing","type":"link","linkTarget":{"name":"Example Listing","id":1,"type":"Listings"},"parentId":1,"id":3},{"text":"Example Form","type":"link","linkTarget":{"name":"Example Form","id":1,"type":"Forms"},"id":4},{"text":"Example Listing","type":"link","linkTarget":{"name":"Example Listing","id":1,"type":"Listings"},"id":5}]}},
   data = {};
 
 exports.deployApp = function(app, cb){

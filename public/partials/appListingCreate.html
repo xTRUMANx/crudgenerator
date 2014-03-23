@@ -24,7 +24,7 @@
     <label class="control-label col-sm-2">Fields</label>
     <div class="col-sm-6">
       <label class="checkbox-inline" ng-repeat="field in selectedForm().fields">
-        <input type="checkbox" ng-model="listing.fields[field.title]" />
+        <input type="checkbox" ng-model="listing.fields[field.id]" />
         {{field.title}}
       </label>
     </div>
@@ -48,7 +48,7 @@
   </div>
   <div class="form-group" ng-if="listing.linkToUpdateForm === 'useField'">
     <select class="form-control" size="2" ng-model="listing.fieldLinkingToUpdateForm"
-            ng-options="field for field in selectedFields()"></select>
+            ng-options="fieldId as fieldTitle(fieldId) for fieldId in selectedFields()"></select>
   </div>
   <div class="form-group">
     <input class="btn btn-primary" type="submit" value="Save listing"
@@ -75,10 +75,10 @@
         <a href="">Details</a>
       </td>
       <td ng-repeat="field in listingFields()">
-        <span ng-if="listing.linkToUpdateForm !== 'useField' || (listing.fieldLinkingToUpdateForm !== field.title)">
+        <span ng-if="listing.linkToUpdateForm !== 'useField' || (listing.fieldLinkingToUpdateForm !== field.id)">
           {{sampleValue(field)}}
         </span>
-        <a href="" ng-if="listing.linkToUpdateForm === 'useField' && listing.fieldLinkingToUpdateForm === field.title">
+        <a href="" ng-if="listing.linkToUpdateForm === 'useField' && listing.fieldLinkingToUpdateForm === field.id">
           {{sampleValue(field)}}
         </a>
       </td>

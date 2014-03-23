@@ -21,7 +21,7 @@ block content
                                 a(href='/deploys/' + vm.app.id + '/forms/' + vm.listing.formId + '?formDataId=' + row.id) Details
                         each field in vm.listingFields
                             td
-                                if vm.listing.linkToUpdateForm === 'useField' && vm.listing.fieldLinkingToUpdateForm === field.title
-                                    a(href='/deploys/' + vm.app.id + '/forms/' + vm.listing.formId + '?formDataId=' + row.id)= row[vm.listing.fieldLinkingToUpdateForm]
+                                if vm.listing.linkToUpdateForm === 'useField' && vm.listing.fieldLinkingToUpdateForm === field.id
+                                    a(href='/deploys/' + vm.app.id + '/forms/' + vm.listing.formId + '?formDataId=' + row.id)= row[field.id]
                                 else
-                                    = row[field.title]
+                                    = row[field.id]

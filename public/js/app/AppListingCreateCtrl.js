@@ -26,7 +26,9 @@ appModule.controller("AppListingCreateCtrl", function($scope, $routeParams, $loc
     }
     else {
       var fields = {};
-      $scope.listing.fields = $scope.selectedForm().fields.forEach(function(field){ fields[field.title] = false});
+
+      $scope.selectedForm().fields.forEach(function(field){ fields[field.id] = false});
+
       $scope.listing.fields = fields;
     }
   };
@@ -44,12 +46,12 @@ appModule.controller("AppListingCreateCtrl", function($scope, $routeParams, $loc
   $scope.listingFields = function(){
     if(!$scope.listing) return [];
 
-    var fieldTitles = [];
+    var fieldIds = [];
     for(var key in $scope.listing.fields) {
-      if($scope.listing.fields[key]) fieldTitles.push(key);
+      if($scope.listing.fields[key]) fieldIds.push(key);
     }
 
-    return $scope.selectedForm().fields.filter(function(field){ return fieldTitles.indexOf(field.title) > -1});
+    return $scope.selectedForm().fields.filter(function(field){ return fieldIds.indexOf(field.id) > -1});
   };
 
   $scope.selectedForm = function(){
@@ -57,13 +59,17 @@ appModule.controller("AppListingCreateCtrl", function($scope, $routeParams, $loc
   };
 
   $scope.selectedFields = function(){
-    var fieldTitles = [];
+    var fieldIds = [];
 
     for(var key in $scope.listing.fields) {
-      if($scope.listing.fields[key]) fieldTitles.push(key);
+      if($scope.listing.fields[key]) fieldIds.push(key);
     }
 
-    return fieldTitles;
+    return fieldIds;
+  };
+
+  $scope.fieldTitle = function(id){
+    return $scope.selectedForm().fields.filter(function(field){ return field.id === id})[0].title;
   };
 
   $scope.sampleValue = function(field){

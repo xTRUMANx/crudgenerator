@@ -1,7 +1,4 @@
-Use a different validator instead of mongoose (perhaps validator.js/express-validator)
-Do not allow form fields to have duplicate titles
-Rename fields without losing data
-    - Fields will require ids so must be stored separately from forms
+Do not allow form fields to have duplicate titles (client-side complete, server-side remains)
 Reorder form field
     - Add move up and move down button below fields list that move the selected field
     - Send the fields in the order they appear to the server

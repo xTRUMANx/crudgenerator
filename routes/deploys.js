@@ -93,32 +93,32 @@ function validateForm(appId, formId, req, cb){
     }
     else{
       form.fields.forEach(function(field){
-        if((field.required || (field.type === 'options' && field.optionType === 'radio')) && !req.body[field.title]) {
-          errors.push({param: field.title, msg: field.title + " is required."});
+        if((field.required || (field.type === 'options' && field.optionType === 'radio')) && !req.body[field.id]) {
+          errors.push({param: field.id, msg: field.title + " is required."});
           return;
         }
 
         switch (field.type){
           case "number":
-            if(req.body[field.title]) {
-              req.checkBody(field.title, field.title + " must be a number.").isNumeric();
+            if(req.body[field.id]) {
+              req.checkBody(field.id, field.title + " must be a number.").isNumeric();
             }
             break;
           case "date":
-            if(req.body[field.title]) {
-              req.checkBody(field.title, field.title + " must be a date.").isDate();
+            if(req.body[field.id]) {
+              req.checkBody(field.id, field.title + " must be a date.").isDate();
             }
             break;
           case "boolean":
-            if(req.body[field.title]) {
-              req.body[field.title] = expressValidator.validator.toBoolean(req.body[field.title]);
+            if(req.body[field.id]) {
+              req.body[field.id] = expressValidator.validator.toBoolean(req.body[field.id]);
             }
             break;
           case "options":
-            if(req.body[field.title]) {
+            if(req.body[field.id]) {
               var options = field.options.split("\n");
 
-              req.checkBody(field.title, field.title + " must be one of the options in the list.").isSubset(options);
+              req.checkBody(field.id, field.title + " must be one of the options in the list.").isSubset(options);
             }
             break;
           default :
@@ -149,7 +149,7 @@ exports.appListing = function(req, res){
           if(listing.fields[key]) fieldTitles.push(key);
         }
         db.getForm(appId, listing.formId, function(form){
-          var listingFields = form.fields.filter(function(field){ return fieldTitles.indexOf(field.title) > -1});
+          var listingFields = form.fields.filter(function(field){ return fieldTitles.indexOf(field.id) > -1});
 
           db.getDeployedApp(appId, function(app){
             var topLevelNavLinks = app.navLinks.filter(function(navLink){ return !navLink.parentId; });

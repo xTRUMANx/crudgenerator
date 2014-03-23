@@ -6,7 +6,7 @@ appModule.controller("AppNavLinksModifyCtrl", function($scope, $routeParams, $lo
       $scope.app = app;
 
       function extractLinkTargetData(a, type){
-        return a.map(function(f){return {name: f.name, id: f.id, type: type}});
+        return a.map(function(f){return {title: f.title, id: f.id, type: type}});
       }
 
       $scope.linkTargets = extractLinkTargetData(app.forms, "Forms").
