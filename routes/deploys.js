@@ -46,6 +46,7 @@ function createAppFormView(req, res){
 
     var formId = Number(req.params.formId);
     var form = app.forms.filter(function(form) { return form.id === formId; })[0];
+    form.fields = form.fields.sort(function(a,b){ return a.order > b.order; });
     req.locals = req.locals || {};
 
     if(req.query.formDataId && !req.locals.formData){
@@ -144,12 +145,18 @@ exports.appListing = function(req, res){
     if(listing){
       // Get listing data
       db.getFormData(appId, listing.formId, null, function(data){
-        var fieldTitles = [];
+        var fieldIds = [];
         for(var key in listing.fields) {
-          if(listing.fields[key]) fieldTitles.push(key);
+          if(listing.fields[key]) fieldIds.push(key);
         }
         db.getForm(appId, listing.formId, function(form){
-          var listingFields = form.fields.filter(function(field){ return fieldTitles.indexOf(field.id) > -1});
+          var listingFields = form.fields.filter(function(field){ return fieldIds.indexOf(field.id) > -1});
+
+          listingFields.forEach(function(field){
+            field.order = listing.order.filter(function(f){ return f.id === field.id; })[0].order;
+          });
+
+          listingFields.sort(function(a,b){ return a.order > b.order; });
 
           db.getDeployedApp(appId, function(app){
             var topLevelNavLinks = app.navLinks.filter(function(navLink){ return !navLink.parentId; });

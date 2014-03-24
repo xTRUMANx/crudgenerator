@@ -20,7 +20,17 @@
       <input type="button" class="btn btn-default" value="Add Field" ng-click="addField()" />
       <input type="button" class="btn btn-default" value="Remove Field" ng-click="removeField(selectedField)" ng-disable="!selectedField" />
       <select class="form-control" size="2" ng-model="selectedField"
-              ng-options="field.title for field in form.fields"></select>
+              ng-options="field.title for field in orderedFormFields()"></select>
+      <button class="btn btn-default" type="button"
+              ng-disabled="selectedField.order === 1" ng-click="moveFieldUp(selectedField)">
+        <span class="glyphicon glyphicon-arrow-up"></span>
+        Move Up
+      </button>
+      <button class="btn btn-default" type="button"
+              ng-disabled="selectedField.order === form.fields.length" ng-click="moveFieldDown(selectedField)">
+        <span class="glyphicon glyphicon-arrow-down"></span>
+        Move Down
+      </button>
     </div>
     <div class="col-sm-6">
       <h3>Field Properties</h3>
@@ -80,7 +90,7 @@
 
 <form class="form-horizontal">
   <h2>{{form.title}}</h2>
-  <div class="form-group col-sm-6" ng-repeat="field in form.fields">
+  <div class="form-group col-sm-6" ng-repeat="field in orderedFormFields()">
     <label class="col-sm-3 control-label" for="{{field.title}}" ng-if="field.type !== 'boolean'">{{field.title}}</label>
     <div class="col-sm-9">
       <input class="form-control" type="text" name="{{field.title}}" ng-model="field.value" ng-if="field.type === 'text' && !field.multipleLine" />

@@ -46,6 +46,10 @@ appModule.controller("AppFormCreateCtrl", function($scope, $routeParams, $locati
         if(!valid) break;
       }
 
+      if(valid) {
+        $scope.duplicateTitle = null;
+      }
+
       return valid;
     }
 
@@ -63,14 +67,43 @@ appModule.controller("AppFormCreateCtrl", function($scope, $routeParams, $locati
   $scope.addField = function(){
     var field = { title: "New Field" };
     $scope.form.fields.push(field);
+    field.order = $scope.form.fields.length;
     $scope.selectedField = field;
   };
 
   $scope.removeField = function(field){
     $scope.form.fields.splice($scope.form.fields.indexOf(field), 1);
+
+    $scope.form.fields.
+      filter(function(f){ return f.order > field.order; }).
+      forEach(function(f){ f.order--; });
   };
 
   $scope.split = function(text){
     return text ? text.split("\n") : "";
+  };
+
+  $scope.moveFieldUp = function(field){
+    if(field.order === 1) return;
+
+    var nextFieldUp = $scope.form.fields.filter(function(f){ return f.order === field.order - 1})[0];
+
+    nextFieldUp.order++;
+    field.order--;
+  };
+
+  $scope.moveFieldDown = function(field){
+    if(field.order === $scope.form.fields.length) return;
+
+    var nextFieldDown = $scope.form.fields.filter(function(f){ return f.order === field.order + 1})[0];
+
+    nextFieldDown.order--;
+    field.order++;
+  };
+
+  $scope.orderedFormFields = function(){
+    if(!$scope.form) return [];
+
+    return $scope.form.fields.sort(function(a,b){ return a.order > b.order});
   };
 });

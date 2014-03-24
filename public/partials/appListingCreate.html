@@ -45,10 +45,28 @@
         Use Field
       </label>
     </div>
+    <div class="col-sm-6" ng-if="listing.linkToUpdateForm === 'useField'">
+      <p class="help-block">Select field used to link to update form.</p>
+      <select class="form-control" ng-model="listing.fieldLinkingToUpdateForm"
+              ng-options="fieldId as fieldTitle(fieldId) for fieldId in selectedFields()"></select>
+    </div>
   </div>
-  <div class="form-group" ng-if="listing.linkToUpdateForm === 'useField'">
-    <select class="form-control" size="2" ng-model="listing.fieldLinkingToUpdateForm"
-            ng-options="fieldId as fieldTitle(fieldId) for fieldId in selectedFields()"></select>
+  <div class="form-group">
+    <label class="control-label col-sm-2">Order</label>
+    <div class="col-sm-6">
+      <select class="form-control" size="2" ng-model="selectedField"
+              ng-options="field as fieldTitle(field.id) for field in orderedSelectedFields()"></select>
+      <button class="btn btn-default" type="button"
+              ng-disabled="selectedField.order === 1" ng-click="moveFieldUp(selectedField)">
+        <span class="glyphicon glyphicon-arrow-up"></span>
+        Move Up
+      </button>
+      <button class="btn btn-default" type="button"
+              ng-disabled="selectedField.order === listing.order.length" ng-click="moveFieldDown(selectedField)">
+        <span class="glyphicon glyphicon-arrow-down"></span>
+        Move Down
+      </button>
+    </div>
   </div>
   <div class="form-group">
     <input class="btn btn-primary" type="submit" value="Save listing"
@@ -66,7 +84,7 @@
       <th ng-if="listing.linkToUpdateForm === 'separateColumn'">
         Details
       </th>
-      <th ng-repeat="field in listingFields()">
+      <th ng-repeat="field in orderedListingFields()">
         {{field.title}}
       </th>
     </thead>
@@ -74,7 +92,7 @@
       <td ng-if="listing.linkToUpdateForm === 'separateColumn'">
         <a href="">Details</a>
       </td>
-      <td ng-repeat="field in listingFields()">
+      <td ng-repeat="field in orderedListingFields()">
         <span ng-if="listing.linkToUpdateForm !== 'useField' || (listing.fieldLinkingToUpdateForm !== field.id)">
           {{sampleValue(field)}}
         </span>

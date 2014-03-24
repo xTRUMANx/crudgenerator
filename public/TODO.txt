@@ -1,11 +1,5 @@
+Allow select list to have multiple rows visible at the same time.
 Do not allow form fields to have duplicate titles (client-side complete, server-side remains)
-Reorder form field
-    - Add move up and move down button below fields list that move the selected field
-    - Send the fields in the order they appear to the server
-    - The server updates field.order based on the index of the field in the array
-    - Whenever the server fetches the field, it order them based on their order property
-Reorder listing columns
-    - Same algorithm as form fields
 Relationships between forms (get select options from form data)
     - If field.type is options, ask the user if they want to source the data from another form
     - If not, let them type in option values as they do now

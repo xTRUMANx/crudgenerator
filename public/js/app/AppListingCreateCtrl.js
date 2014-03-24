@@ -54,11 +54,27 @@ appModule.controller("AppListingCreateCtrl", function($scope, $routeParams, $loc
     return $scope.selectedForm().fields.filter(function(field){ return fieldIds.indexOf(field.id) > -1});
   };
 
+  $scope.orderedListingFields = function(){
+    if(!$scope.listing) return [];
+
+    var listingFields = $scope.listingFields();
+
+    listingFields.forEach(function(field){
+      var fieldOrder = $scope.orderedSelectedFields().filter(function(f){ return f.id === field.id; })[0].order;
+
+      field.order = fieldOrder;
+    });
+
+    return listingFields.sort(function(a,b){ return a.order > b.order; });
+  };
+
   $scope.selectedForm = function(){
     return $scope.app.forms.filter(function(form){ return form.id === $scope.listing.formId; })[0];
   };
 
   $scope.selectedFields = function(){
+    if(!$scope.listing) return [];
+
     var fieldIds = [];
 
     for(var key in $scope.listing.fields) {
@@ -94,5 +110,43 @@ appModule.controller("AppListingCreateCtrl", function($scope, $routeParams, $loc
     DataService.saveListing($scope.appId, listing).then(function(){
       $location.path("/apps/" + $scope.appId);
     });
+  };
+
+  $scope.moveFieldUp = function(field){
+    if(field.order === 1) return;
+
+    var nextFieldUp = $scope.listing.order.filter(function(f){ return f.order === field.order - 1})[0];
+
+    nextFieldUp.order++;
+    field.order--;
+  };
+
+  $scope.moveFieldDown = function(field){
+    if(field.order === $scope.listing.order.length) return;
+
+    var nextFieldDown = $scope.listing.order.filter(function(f){ return f.order === field.order + 1})[0];
+
+    nextFieldDown.order--;
+    field.order++;
+  };
+
+  $scope.orderedSelectedFields = function(){
+    if(!$scope.listing) return [];
+
+    var selectedFields = $scope.selectedFields();
+
+    if(!$scope.listing.order || !$scope.listing.order.length || $scope.listing.order.length !== selectedFields.length) {
+      var order = 1;
+
+      $scope.listing.order = selectedFields.map(function(id){ return {id: id, order: order++}});
+    }
+
+    var orderedSelectedFields =  $scope.listing.order.sort(function(a,b){ return a.order > b.order});
+
+    if(!$scope.selectedField || orderedSelectedFields.indexOf($scope.selectedField) === -1) {
+      $scope.selectedField = orderedSelectedFields[0];
+    }
+
+    return orderedSelectedFields;
   };
 });
