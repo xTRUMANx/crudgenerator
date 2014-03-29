@@ -25,9 +25,29 @@ html
                                     each childLink in navLink.children
                                         li
                                             a(href='/deploys/' + vm.app.id + '/' + childLink.linkTarget.type + '/' + childLink.linkTarget.id)= childLink.text
+                ul.nav.navbar-nav.navbar-right
+                    ul.nav.navbar-nav
+                    if(username)
+                        li
+                            a= username
+                        li
+                            a(href='/deploys/' + vm.app.id + '/logout') Logout
+                    else
+                        if showLinks.login
+                            li
+                                a(href='/deploys/' + vm.app.id + '/login') Login
+                        if showLinks.registration
+                            li
+                                a(href='/deploys/' + vm.app.id + '/register') Register
+
 
         .container
+            if vm.success
+                .alert.alert-success= vm.success
+            if vm.error
+                .alert.alert-danger= vm.error
+
             block content
 
-    script(src='/js/jquery-2.0.3.min.js', type='application/javascript')
-    script(src='/js/bootstrap.min.js', type='application/javascript')
+        script(src='/js/jquery-2.0.3.min.js', type='application/javascript')
+        script(src='/js/bootstrap.min.js', type='application/javascript')

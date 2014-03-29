@@ -11,6 +11,10 @@
     <label class="control-label col-sm-2">Form Title</label>
     <div class="col-sm-6">
       <input class="form-control" type="text" required ng-model="form.title"/>
+      <label class="checkbox">
+        <input type="checkbox" ng-model="form.requiresAuthentication"/>
+        Requires Authentication
+      </label>
     </div>
     <input class="btn btn-primary" type="submit" value="Save Form" ng-disabled="!validateForm()" />
   </div>

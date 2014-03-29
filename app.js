@@ -36,6 +36,11 @@ app.get('/api/:segment', api["router"]);
 app.post('/api/:segment', api["router"]);
 
 app.get('/deploys/:appId', deploys.appHome);
+app.get('/deploys/:appId/login', deploys.appLoginGET);
+app.post('/deploys/:appId/login', deploys.appLoginPOST);
+app.get('/deploys/:appId/register', deploys.appRegisterGET);
+app.post('/deploys/:appId/register', deploys.appRegisterPOST);
+app.get('/deploys/:appId/logout', deploys.appLogoutGET);
 app.get('/deploys/:appId/forms/:formId', deploys.appForm);
 app.post('/deploys/:appId/forms/:formId', deploys.saveAppForm);
 app.get('/deploys/:appId/listings/:listingId', deploys.appListing);

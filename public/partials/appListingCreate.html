@@ -11,6 +11,10 @@
     <label class="control-label col-sm-2">Listing Title</label>
     <div class="col-sm-6">
       <input class="form-control" type="text" required ng-model="listing.title"/>
+      <label class="checkbox">
+        <input type="checkbox" ng-model="listing.requiresAuthentication"/>
+        Requires Authentication
+      </label>
     </div>
   </div>
   <div class="form-group">

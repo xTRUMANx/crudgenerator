@@ -17,10 +17,10 @@ appModule.controller("AppPreviewCtrl", function($scope, $routeParams, $location,
   $scope.navLinksTree = function(){
     if(!$scope.app) return [];
 
-    var topLevelNavLinks = $scope.app.navLinks.filter(function(navLink){ return !navLink.parentId; });
+    var topLevelNavLinks = $scope.app.navLinks.links.filter(function(navLink){ return !navLink.parentId; });
 
     topLevelNavLinks.forEach(function(navLink){
-      navLink.children = $scope.app.navLinks.filter(function(nL){ return nL.parentId === navLink.id; });
+      navLink.children = $scope.app.navLinks.links.filter(function(nL){ return nL.parentId === navLink.id; });
     });
 
     return topLevelNavLinks;

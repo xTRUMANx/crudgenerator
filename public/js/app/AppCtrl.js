@@ -7,10 +7,10 @@ appModule.controller("AppCtrl", function($scope, $routeParams, DataService){
     });
 
   $scope.navLinksTree = function(){
-    var topLevelNavLinks = $scope.app.navLinks.filter(function(navLink){ return !navLink.parentId; });
+    var topLevelNavLinks = $scope.app.navLinks.links.filter(function(navLink){ return !navLink.parentId; });
 
     topLevelNavLinks.forEach(function(navLink){
-      navLink.children = $scope.app.navLinks.filter(function(nL){ return nL.parentId === navLink.id; });
+      navLink.children = $scope.app.navLinks.links.filter(function(nL){ return nL.parentId === navLink.id; });
     });
 
     return topLevelNavLinks;

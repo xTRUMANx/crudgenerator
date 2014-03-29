@@ -1,0 +1,19 @@
+extends layout
+
+block content
+    form.form-horizontal(action="/deploys/" + vm.app.id + "/register", method="post")
+        .form-group
+            label.control-label.col-sm-3 Username
+            .col-sm-9
+                input.form-control(type="text",name="id")
+        .form-group
+            label.control-label.col-sm-3 Password
+            .col-sm-9
+                input.form-control(type="password",name="password")
+        .form-group
+            label.control-label.col-sm-3 Confirm Password
+            .col-sm-9
+                input.form-control(type="password",name="confirmPassword")
+        .form-group
+            .col-sm-9.col-sm-offset-3
+                input.btn.btn-primary(type="submit",value="Register")

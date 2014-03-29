@@ -1,6 +1,6 @@
 var appModule = angular.module("AppModule", ["ngRoute", "checklist-model"]);
 
-appModule.config(function($routeProvider, $locationProvider){
+appModule.config(function($routeProvider){
   $routeProvider.when("/", {
     controller: "HomeCtrl",
     templateUrl: "partials/home.html"
@@ -44,5 +44,20 @@ appModule.config(function($routeProvider, $locationProvider){
   $routeProvider.when("/apps/:appId/preview", {
     controller: "AppPreviewCtrl",
     templateUrl: "partials/appPreview.html"
+  });
+
+  $routeProvider.when("/apps/:appId/users/create", {
+    controller: "AppUserCreateCtrl",
+    templateUrl: "partials/appUserCreate.html"
+  });
+
+  $routeProvider.when("/apps/:appId/users", {
+    controller: "AppUsersCtrl",
+    templateUrl: "partials/appUsers.html"
+  });
+
+  $routeProvider.when("/apps/:appId/registration", {
+    controller: "AppRegistrationCtrl",
+    templateUrl: "partials/appRegistration.html"
   });
 });

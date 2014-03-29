@@ -20,14 +20,104 @@ exports.appHome = function(req, res){
   var appId = req.params.appId;
 
   db.getDeployedApp(appId, function(app){
-    var topLevelNavLinks = app.navLinks.filter(function(navLink){ return !navLink.parentId; });
+    var topLevelNavLinks = app.navLinks.links.filter(function(navLink){ return !navLink.parentId; });
 
     topLevelNavLinks.forEach(function(navLink){
-      navLink.children = app.navLinks.filter(function(nL){ return nL.parentId === navLink.id; });
+      navLink.children = app.navLinks.links.filter(function(nL){ return nL.parentId === navLink.id; });
     });
 
-    res.render("appHome", {title: "Home", vm: { app: app }, navLinks: topLevelNavLinks });
+    res.render("appHome", {title: "Home", vm: { app: app }, navLinks: topLevelNavLinks, showLinks: app.navLinks.showLinks, username: req.cookies.username });
   });
+};
+
+exports.appLoginGET = function(req, res){
+  var appId = req.params.appId;
+
+  db.getDeployedApp(appId, function(app){
+    var topLevelNavLinks = app.navLinks.links.filter(function(navLink){ return !navLink.parentId; });
+
+    topLevelNavLinks.forEach(function(navLink){
+      navLink.children = app.navLinks.links.filter(function(nL){ return nL.parentId === navLink.id; });
+    });
+
+    if(req.query.invalid){
+      var error = "Invalid username or password";
+    }
+
+    if(req.query.registered){
+      var success = "Successfully registered.";
+    }
+
+    res.render("appLogin", {title: "Login", vm: { app: app, error: error, success: success }, navLinks: topLevelNavLinks, showLinks: app.navLinks.showLinks, username: req.cookies.username });
+  });
+};
+
+exports.appLoginPOST = function(req, res){
+  var appId = req.params.appId;
+  var loginForm = req.body;
+
+  db.authenticateUser(appId, loginForm, function(isValidLogin){
+    if(isValidLogin) {
+      res.cookie("username", loginForm.id);
+
+      res.redirect("/deploys/" + appId);
+    }
+    else{
+      res.redirect("/deploys/" + appId + "/login?invalid=true");
+    }
+  });
+};
+
+exports.appRegisterGET = function(req, res){
+  var appId = req.params.appId;
+
+  db.getDeployedApp(appId, function(app){
+    if(app.registration.type !== "open") {
+      res.send("page not found", 404);
+      return;
+    }
+
+    var topLevelNavLinks = app.navLinks.links.filter(function(navLink){ return !navLink.parentId; });
+
+    topLevelNavLinks.forEach(function(navLink){
+      navLink.children = app.navLinks.links.filter(function(nL){ return nL.parentId === navLink.id; });
+    });
+
+    if(req.query.passwordMatchFail){
+      var error = "Password and Confirm Password fields must match.";
+    }
+
+    res.render("appRegister", {title: "Register", vm: { app: app, error: error }, navLinks: topLevelNavLinks, showLinks: app.navLinks.showLinks, username: req.cookies.username });
+  });
+};
+
+exports.appRegisterPOST = function(req, res){
+  var appId = req.params.appId;
+  var registrationForm = req.body;
+
+  db.getDeployedApp(appId, function(app){
+    if(app.registration.type !== "open") {
+      res.send("page not found", 404);
+      return;
+    }
+
+    if(registrationForm.password === registrationForm.confirmPassword){
+      db.saveUser(appId, registrationForm, function(){
+        res.redirect("/deploys/" + appId + "/login?registered=true");
+      });
+    }
+    else{
+        res.redirect("/deploys/" + appId + "/register?passwordMatchFail=true");
+    }
+  });
+};
+
+exports.appLogoutGET = function(req, res){
+  var appId = req.params.appId;
+
+  res.clearCookie("username");
+
+  res.redirect("/deploys/" + appId);
 };
 
 exports.appForm = function(req, res){
@@ -38,24 +128,30 @@ function createAppFormView(req, res){
   var appId = req.params.appId;
 
   db.getDeployedApp(appId, function(app){
-    var topLevelNavLinks = app.navLinks.filter(function(navLink){ return !navLink.parentId; });
+    var topLevelNavLinks = app.navLinks.links.filter(function(navLink){ return !navLink.parentId; });
 
     topLevelNavLinks.forEach(function(navLink){
-      navLink.children = app.navLinks.filter(function(nL){ return nL.parentId === navLink.id; });
+      navLink.children = app.navLinks.links.filter(function(nL){ return nL.parentId === navLink.id; });
     });
 
     var formId = Number(req.params.formId);
     var form = app.forms.filter(function(form) { return form.id === formId; })[0];
+
+    if(form.requiresAuthentication && !req.cookies.username){
+      res.redirect("/deploys/" + appId + "/login");
+      return;
+    }
+
     form.fields = form.fields.sort(function(a,b){ return a.order > b.order; });
     req.locals = req.locals || {};
 
     if(req.query.formDataId && !req.locals.formData){
       db.getFormData(appId, formId, req.query.formDataId, function(formData){
-        res.render("appForm", {title: form.name, vm: { app: app, formData: formData, errors: req.locals.errors }, navLinks: topLevelNavLinks, form: form, saved: req.query.saved });
+        res.render("appForm", {title: form.name, vm: { app: app, formData: formData, errors: req.locals.errors }, navLinks: topLevelNavLinks, showLinks: app.navLinks.showLinks, form: form, saved: req.query.saved, username: req.cookies.username });
       });
     }
     else{
-      res.render("appForm", {title: form.title, vm: { app: app, formData: req.locals.formData || {}, errors: req.locals.errors }, navLinks: topLevelNavLinks, form: form, saved: req.query.saved });
+      res.render("appForm", {title: form.title, vm: { app: app, formData: req.locals.formData || {}, errors: req.locals.errors }, navLinks: topLevelNavLinks, showLinks: app.navLinks.showLinks, form: form, saved: req.query.saved, username: req.cookies.username });
     }
   });
 }
@@ -142,6 +238,11 @@ exports.appListing = function(req, res){
   var listingId = req.params.listingId;
 
   var listing= db.getDeployedListing(appId, listingId, function(listing){
+    if(listing.requiresAuthentication && !req.cookies.username){
+      res.redirect("/deploys/" + appId + "/login");
+      return;
+    }
+
     if(listing){
       // Get listing data
       db.getFormData(appId, listing.formId, null, function(data){
@@ -159,15 +260,15 @@ exports.appListing = function(req, res){
           listingFields.sort(function(a,b){ return a.order > b.order; });
 
           db.getDeployedApp(appId, function(app){
-            var topLevelNavLinks = app.navLinks.filter(function(navLink){ return !navLink.parentId; });
+            var topLevelNavLinks = app.navLinks.links.filter(function(navLink){ return !navLink.parentId; });
 
             topLevelNavLinks.forEach(function(navLink){
-              navLink.children = app.navLinks.filter(function(nL){ return nL.parentId === navLink.id; });
+              navLink.children = app.navLinks.links.filter(function(nL){ return nL.parentId === navLink.id; });
             });
 
             var vm = { app: app, listing: listing, data: data, listingFields: listingFields };
 
-            res.render("appListing", { title: listing.title, vm: vm, navLinks: topLevelNavLinks });
+            res.render("appListing", { title: listing.title, vm: vm, navLinks: topLevelNavLinks, showLinks: app.navLinks.showLinks, username: req.cookies.username });
           });
         });
       });

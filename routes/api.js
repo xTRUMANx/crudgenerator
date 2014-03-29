@@ -56,7 +56,7 @@ exports.listingsPOST = function(req, res){
   var appId = req.query.appId;
 
   db.saveListing(appId, req.body, function(){
-    res.end()
+    res.end();
   });
 };
 
@@ -83,5 +83,37 @@ exports.deployPOST = function(req, res){
     db.deployApp(app, function(){
       res.redirect("/deploys/" + appId);
     });
+  });
+};
+
+exports.usersPOST = function(req, res){
+  var appId = req.query.appId;
+
+  db.saveUser(appId, req.body, function(){
+    res.end();
+  });
+};
+
+exports.registrationPOST = function(req, res){
+  var appId = req.query.appId;
+
+  db.saveRegistration(appId, req.body, function(){
+    res.end();
+  });
+};
+
+exports.navLinksShowLinksPOST = function(req, res){
+  var appId = req.query.appId;
+
+  db.saveNavLinksShowLinks(appId, req.body, function(){
+    res.end();
+  });
+};
+
+exports.usersGET = function(req, res){
+  var appId = req.query.appId;
+
+  db.getUsers(appId, function(users){
+    res.json(users);
   });
 };

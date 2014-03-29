@@ -1,16 +1,24 @@
-//////////////////////////////////////////
-// This section related to app building //
-//////////////////////////////////////////
-
 var apps = [
   {
     id: 1,
     title: "Example App",
-    forms: [{"fields":[{"title":"String Field","type":"text","required":true,"id":"1","order":1},{"title":"Number Field","type":"number","id":"2","order":2},{"title":"Date Field","type":"date","id":"3","order":3},{"title":"Boolean Field","type":"boolean","id":"4","order":4},{"title":"Radio Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"radio","id":"5","order":5},{"title":"Checkbox Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"checkbox","id":"6","order":6},{"title":"Select Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"select","id":"7","order":7},{"title":"Multi-Select Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"multi-select","id":"8","order":8}],"title":"Example Form","id":1,"nextFieldId":9}],
+    forms: [{"fields":[{"title":"String Field","type":"text","required":true,"id":"1","order":1},{"title":"Number Field","type":"number","id":"2","order":2},{"title":"Date Field","type":"date","id":"3","order":3},{"title":"Boolean Field","type":"boolean","id":"4","order":4},{"title":"Radio Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"radio","id":"5","order":5},{"title":"Checkbox Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"checkbox","id":"6","order":6},{"title":"Select Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"select","id":"7","order":7},{"title":"Multi-Select Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"multi-select","id":"8","order":8}],requiresAuthentication:true,"title":"Example Form","id":1,"nextFieldId":9}],
     listings: [{"fields":{"1":true,"2":true,"3":true,"4":true,"5":true,"6":true,"7":false,"8":false},"title":"Example Listing","formId":1,"linkToUpdateForm":"useField","fieldLinkingToUpdateForm":"1","id":1,"order":[{"id":"1","order":1},{"id":"4","order":2},{"id":"2","order":3},{"id":"3","order":4},{"id":"5","order":5},{"id":"6","order":6}]}],
-    navLinks: [{"text":"Examples","type":"dropdown","id":1},{"text":"Example Form","type":"link","linkTarget":{"name":"Example Form","id":1,"type":"Forms"},"parentId":1,"id":2},{"text":"Example Listing","type":"link","linkTarget":{"name":"Example Listing","id":1,"type":"Listings"},"parentId":1,"id":3}, {"text":"Example Form","type":"link","linkTarget":{"name":"Example Form","id":1,"type":"Forms"},"id":4},{"text":"Example Listing","type":"link","linkTarget":{"name":"Example Listing","id":1,"type":"Listings"},"id":5}]
+    navLinks: {
+      links: [{"text":"Examples","type":"dropdown","id":1},{"text":"Example Form","type":"link","linkTarget":{"name":"Example Form","id":1,"type":"Forms"},"parentId":1,"id":2},{"text":"Example Listing","type":"link","linkTarget":{"name":"Example Listing","id":1,"type":"Listings"},"parentId":1,"id":3}, {"text":"Example Form","type":"link","linkTarget":{"name":"Example Form","id":1,"type":"Forms"},"id":4},{"text":"Example Listing","type":"link","linkTarget":{"name":"Example Listing","id":1,"type":"Listings"},"id":5}],
+      showLinks: { login: true, registration: true }
+    },
+    users: [{id: "admin", password: "123"}],
+    registration: { type: "open" }
   }
-];
+],
+  deployedApps = {},
+  data = {},
+  appsUsers = {1: [{id: "admin", password: "123"}]};
+
+//////////////////////////////////////////
+// This section related to app building //
+//////////////////////////////////////////
 
 exports.getApps = function(cb){
   var appsSummary = apps.map(function(app){
@@ -32,6 +40,8 @@ exports.getApp = function(id, cb){
 
   if(app){
     app.deployed = !!deployedApps[id];
+
+    app.usersCount = appsUsers[id].length;
   }
 
   cb(app);
@@ -40,7 +50,7 @@ exports.getApp = function(id, cb){
 exports.createApp = function(app, cb){
   app.forms = [];
   app.listings = [];
-  app.navLinks = [];
+  app.navLinks = { links: [] };
 
   app.id = (apps[apps.length - 1] || {id : 0}).id + 1;
 
@@ -135,10 +145,10 @@ exports.getListing = function(appId, listingId, cb){
 
 exports.getNavLinks = function(appId, cb){
   exports.getApp(appId, function(app){
-    var topLevelNavLinks = app.navLinks.filter(function(navLink){ return !navLink.parentId; });
+    var topLevelNavLinks = app.navLinks.links.filter(function(navLink){ return !navLink.parentId; });
 
     topLevelNavLinks.forEach(function(navLink){
-      navLink.children = app.navLinks.filter(function(nL){ return nL.parentId === navLink.id; });
+      navLink.children = app.navLinks.links.filter(function(nL){ return nL.parentId === navLink.id; });
     });
 
     cb(topLevelNavLinks);
@@ -148,28 +158,59 @@ exports.getNavLinks = function(appId, cb){
 exports.saveNavLink = function(appId, navLink, cb){
   exports.getApp(appId, function(app){
     if(!navLink.id) {
-      navLink.id = (app.navLinks[app.navLinks.length - 1] || {id : 0}).id + 1;
+      navLink.id = (app.navLinks.links[app.navLinks.links.length - 1] || {id : 0}).id + 1;
 
-      app.navLinks.push(navLink);
+      app.navLinks.links.push(navLink);
     }
     else {
-      var oldNavLink = app.navLinks.filter(function(nL) { return nL.id === navLink.id; })[0];
+      var oldNavLink = app.navLinks.links.filter(function(nL) { return nL.id === navLink.id; })[0];
 
-      var index = app.navLinks.indexOf(oldNavLink);
+      var index = app.navLinks.links.indexOf(oldNavLink);
 
-      app.navLinks[index] = navLink;
+      app.navLinks.links[index] = navLink;
     }
 
     cb({ id: navLink.id });
   });
 };
 
+exports.saveUser = function(appId, user, cb){
+  appId = Number(appId);
+
+  appsUsers[appId].push(user);
+
+  cb();
+};
+
+exports.getUsers = function(appId, cb){
+  appId = Number(appId);
+
+  cb(appsUsers[appId]);
+};
+
+exports.authenticateUser = function(appId, loginForm, cb){
+  appId = Number(appId);
+
+  var user = appsUsers[appId] && appsUsers[appId].filter(function(u){ return u.id.toLowerCase() === loginForm.id.toLowerCase(); })[0];
+
+  var validLogin = user && user.password === loginForm.password;
+
+  cb(validLogin);
+};
+
+exports.saveNavLinksShowLinks = function(appId, showLinks, cb){
+  appId = Number(appId);
+
+  var matchingApp = apps.filter(function(app) { return app.id === appId; })[0];
+
+  matchingApp.navLinks.showLinks = showLinks;
+
+  cb();
+};
+
 ///////////////////////////////////////////
 // This section related to deployed apps //
 ///////////////////////////////////////////
-
-var deployedApps = {1: {"id":1,"title":"Example App","forms":[{"fields":[{"title":"String Field","type":"text","required":true,"id":"1","order":1},{"title":"Number Field","type":"number","id":"2","order":2},{"title":"Date Field","type":"date","id":"3","order":3},{"title":"Boolean Field","type":"boolean","id":"4","order":4},{"title":"Radio Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"radio","id":"5","order":5},{"title":"Checkbox Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"checkbox","id":"6","order":6},{"title":"Select Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"select","id":"7","order":7},{"title":"Multi-Select Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"multi-select","id":"8","order":8}],"title":"Example Form","id":1,"nextFieldId":9}],"listings":[{"fields":{"1":true,"2":true,"3":true,"4":true,"5":true,"6":true,"7":false,"8":false},"title":"Example Listing","formId":1,"linkToUpdateForm":"useField","fieldLinkingToUpdateForm":"1","id":1,"order":[{"id":"1","order":1},{"id":"4","order":2},{"id":"2","order":3},{"id":"3","order":4},{"id":"5","order":5},{"id":"6","order":6}]}],"navLinks":[{"text":"Examples","type":"dropdown","id":1},{"text":"Example Form","type":"link","linkTarget":{"name":"Example Form","id":1,"type":"Forms"},"parentId":1,"id":2},{"text":"Example Listing","type":"link","linkTarget":{"name":"Example Listing","id":1,"type":"Listings"},"parentId":1,"id":3},{"text":"Example Form","type":"link","linkTarget":{"name":"Example Form","id":1,"type":"Forms"},"id":4},{"text":"Example Listing","type":"link","linkTarget":{"name":"Example Listing","id":1,"type":"Listings"},"id":5}]}},
-  data = {};
 
 exports.deployApp = function(app, cb){
   var copy = require("../utils").copy;
@@ -255,4 +296,13 @@ exports.getFormData = function(appId, formId, formDataId, cb){
   }
 
   cb(formData);
+};
+
+exports.saveRegistration = function(appId, registration, cb){
+  appId = Number(appId);
+  var matchingApp = apps.filter(function(app) { return app.id === appId; })[0];
+
+  matchingApp.registration = registration;
+
+  cb();
 };

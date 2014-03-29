@@ -14,16 +14,16 @@ appModule.controller("AppNavLinksModifyCtrl", function($scope, $routeParams, $lo
     });
 
   $scope.dropdownNavLinks = function(){
-    return $scope.app.navLinks.filter(function(nL){ return nL.type === "dropdown"; });
+    return $scope.app.navLinks.links.filter(function(nL){ return nL.type === "dropdown"; });
   };
 
   $scope.navLinksTree = function(){
     if(!$scope.app) return [];
 
-    var topLevelNavLinks = $scope.app.navLinks.filter(function(navLink){ return !navLink.parentId; });
+    var topLevelNavLinks = $scope.app.navLinks.links.filter(function(navLink){ return !navLink.parentId; });
 
     topLevelNavLinks.forEach(function(navLink){
-      navLink.children = $scope.app.navLinks.filter(function(nL){ return nL.parentId === navLink.id; });
+      navLink.children = $scope.app.navLinks.links.filter(function(nL){ return nL.parentId === navLink.id; });
     });
 
     return topLevelNavLinks;
@@ -37,23 +37,27 @@ appModule.controller("AppNavLinksModifyCtrl", function($scope, $routeParams, $lo
     $scope.navLink.parentId = null;
   };
 
-  $scope.save = function(navLink){
+  $scope.saveNavLink = function(navLink){
     DataService.saveNavLink($scope.app.id, navLink).
       then(function(id){
         if(!navLink.id) {
           navLink.id = id;
 
-          $scope.app.navLinks.push(navLink);
+          $scope.app.navLinks.links.push(navLink);
         }
         else {
-          var oldNavLink = $scope.app.navLinks.filter(function(nL) { return nL.id === navLink.id; })[0];
+          var oldNavLink = $scope.app.navLinks.links.filter(function(nL) { return nL.id === navLink.id; })[0];
 
-          var index = $scope.app.navLinks.indexOf(oldNavLink);
+          var index = $scope.app.navLinks.links.indexOf(oldNavLink);
 
-          $scope.app.navLinks[index] = navLink;
+          $scope.app.navLinks.links[index] = navLink;
         }
 
         $scope.navLink = null;
       });
-  }
+  };
+
+  $scope.saveShowLinks = function(){
+    DataService.saveShowLinks($scope.appId, $scope.app.navLinks.showLinks);
+  };
 });

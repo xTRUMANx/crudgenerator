@@ -81,6 +81,38 @@ appModule.factory("DataService", function($q, $http){
           deferred.resolve(data.id);
         });
       });
+    },
+    createUser: function(appId, user){
+      return promise(function(deferred){
+        $http.post(apiRootUrl + "users", user, { params: { appId: appId } }).
+          success(function(){
+            deferred.resolve();
+          });
+      });
+    },
+    saveRegistration: function(appId, registration){
+      return promise(function(deferred){
+        $http.post(apiRootUrl + "registration", registration, { params: { appId: appId } }).
+          success(function(){
+            deferred.resolve();
+          });
+      });
+    },
+    saveShowLinks: function(appId, showLinks) {
+      return promise(function(deferred){
+        $http.post(apiRootUrl + "navLinksShowLinks", showLinks, { params: { appId: appId } }).
+          success(function(){
+            deferred.resolve();
+          });
+      });
+    },
+    getUsersByAppId: function(appId){
+      return promise(function(deferred){
+        $http.get(apiRootUrl + "users", { params: { appId: appId } }).
+          success(function(users){
+            deferred.resolve(users);
+          });
+      });
     }
   };
 });
