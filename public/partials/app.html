@@ -8,72 +8,107 @@
 
 <div class="row" ng-show="app">
   <div class="col-xs-4">
-    <h4>Forms</h4>
-    <p ng-hide="app.forms">There are no forms on this app.</p>
-    <ul class="list-unstyled" ng-show="app.forms">
-      <li ng-repeat="form in app.forms">
-        <a href="#/apps/{{appId}}/forms/update/{{form.id}}">
-          {{form.title}}
-          <span class="glyphicon glyphicon-lock" ng-show="form.requiresAuthentication"></span>
-        </a>
-      </li>
-    </ul>
-    <a class="btn btn-default" href="#/apps/{{appId}}/forms/create">Create Form</a>
-  </div>
-  <div class="col-xs-4">
-    <h4>Listings</h4>
-    <p ng-hide="app.listings">There are no listings on this app.</p>
-    <ul class="list-unstyled" ng-show="app.listings">
-      <li ng-repeat="listing in app.listings">
-        <a href="#/apps/{{appId}}/listings/update/{{listing.id}}">
-          {{listing.title}}
-          <span class="glyphicon glyphicon-lock" ng-show="listing.requiresAuthentication"></span>
-        </a>
-      </li>
-    </ul>
-    <a class="btn btn-default" href="#/apps/{{appId}}/listings/create">Create Listing</a>
-  </div>
-  <div class="col-xs-4">
-    <h4>Navigation Links</h4>
+    <div class="panel panel-primary">
+      <div class="panel-heading">
+        <h4 class="panel-title">Forms</h4>
+      </div>
+      <div class="panel-body">
+        <p ng-hide="app.forms">There are no forms on this app.</p>
 
-    <p ng-if="!app.navLinks">There are no navigation links on this app.</p>
-
-    <ul class="list-unstyled" ng-if="app.navLinks">
-      <li ng-repeat="navLink in navLinksTree()">
-        {{navLink.text}}
-        <ul ng-if="navLink.type === 'dropdown'">
-          <li ng-repeat="childLink in navLink.children">
-            {{childLink.text}}
+        <ul class="list-unstyled" ng-show="app.forms">
+          <li ng-repeat="form in app.forms">
+            <a href="#/apps/{{appId}}/forms/update/{{form.id}}">
+              {{form.title}}
+              <span class="glyphicon glyphicon-lock" ng-show="form.requiresAuthentication"></span>
+            </a>
           </li>
         </ul>
-      </li>
-      <li ng-if="app.navLinks.showLinks.login">Login</li>
-      <li ng-if="app.navLinks.showLinks.registration">Register</li>
-    </ul>
-    <a class="btn btn-default" href="#/apps/{{app.id}}/navLinks/modify">Modify Navigation Links</a>
-  </div>
-  <div class="col-xs-4">
-    <h4>Users</h4>
-
-    <ul class="list-unstyled">
-      <li>
-        <a href="#/apps/{{app.id}}/users">Users: {{app.usersCount}}</a>
-      </li>
-    </ul>
-
-    <div>
-      <a class="btn btn-default" href="#/apps/{{app.id}}/users/create">Create User</a>
+      </div>
+      <div class="panel-footer">
+        <a class="btn btn-default" href="#/apps/{{appId}}/forms/create">Create Form</a>
+      </div>
     </div>
   </div>
   <div class="col-xs-4">
-    <h4>Registration</h4>
-    <ul class="list-unstyled">
-      <li>
-        <a href="#/apps/{{app.id}}/registration">Registration: {{app.registration.type}}</a>
-      </li>
-    </ul>
+    <div class="panel panel-primary">
+      <div class="panel-heading">
+        <h4 class="panel-title">Listings</h4>
+      </div>
+      <div class="panel-body">
+        <p ng-hide="app.listings">There are no listings on this app.</p>
+
+        <ul class="list-unstyled" ng-show="app.listings">
+          <li ng-repeat="listing in app.listings">
+            <a href="#/apps/{{appId}}/listings/update/{{listing.id}}">
+              {{listing.title}}
+              <span class="glyphicon glyphicon-lock" ng-show="listing.requiresAuthentication"></span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div class="panel-footer">
+        <a class="btn btn-default" href="#/apps/{{appId}}/listings/create">Create Listing</a>
+      </div>
+    </div>
   </div>
+  <div class="col-xs-4">
+    <div class="panel panel-primary">
+      <div class="panel-heading">
+        <h4 class="panel-title">Navigation Links</h4>
+      </div>
+      <div class="panel-body">
+        <p ng-if="!app.navLinks">There are no navigation links on this app.</p>
+
+        <ul class="list-unstyled" ng-if="app.navLinks">
+          <li ng-repeat="navLink in navLinksTree()">
+            {{navLink.text}}
+            <ul ng-if="navLink.type === 'dropdown'">
+              <li ng-repeat="childLink in navLink.children">
+                {{childLink.text}}
+              </li>
+            </ul>
+          </li>
+          <li ng-if="app.navLinks.showLinks.login">Login</li>
+          <li ng-if="app.navLinks.showLinks.registration">Register</li>
+        </ul>
+      </div>
+      <div class="panel-footer">
+        <a class="btn btn-default" href="#/apps/{{app.id}}/navLinks/modify">Modify Navigation Links</a>
+      </div>
+    </div>
   </div>
+  <div class="col-xs-4">
+    <div class="panel panel-primary">
+      <div class="panel-heading">
+        <h4 class="panel-title">Users</h4>
+      </div>
+      <div class="panel-body">
+        <ul class="list-unstyled">
+          <li>
+            <a href="#/apps/{{app.id}}/users">Users: {{app.usersCount}}</a>
+          </li>
+        </ul>
+      </div>
+      <div class="panel-footer">
+        <a class="btn btn-default" href="#/apps/{{app.id}}/users/create">Create User</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-xs-4">
+    <div class="panel panel-primary">
+      <div class="panel-heading">
+        <h4 class="panel-title">Registration</h4>
+      </div>
+      <div class="panel-body">
+        <ul class="list-unstyled">
+          <li>
+            <a href="#/apps/{{app.id}}/registration">Type: {{app.registration.type}}</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
 
 <hr/>
 
@@ -87,7 +122,7 @@
   </form>
 
   <div class="col-sm-4 text-center">
-    <a class="btn btn-info btn-lg" href="/deploys/{{app.id}}" ng-class="{ disabled: !app.deployed }">
+    <a class="btn btn-primary btn-lg" href="/deploys/{{app.id}}" ng-class="{ disabled: !app.deployed }">
       View App
     </a>
   </div>

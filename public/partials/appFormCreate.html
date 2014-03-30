@@ -8,13 +8,26 @@
 
 <form class="form-horizontal clearfix" ng-show="app" ng-submit="save(form)">
   <div class="form-group">
-    <label class="control-label col-sm-2">Form Title</label>
-    <div class="col-sm-6">
+    <label class="control-label col-sm-3">Form Title</label>
+    <div class="col-sm-9">
       <input class="form-control" type="text" required ng-model="form.title"/>
-      <label class="checkbox">
-        <input type="checkbox" ng-model="form.requiresAuthentication"/>
-        Requires Authentication
-      </label>
+    </div>
+    <div class="form-group">
+      <label class="control-label col-sm-3">Authentication Rules</label>
+      <div class="col-sm-9">
+        <label class="checkbox-inline">
+          <input type="checkbox" ng-model="form.authenticationRules.create" /> Create
+        </label>
+        <label class="checkbox-inline">
+          <input type="checkbox" ng-model="form.authenticationRules.view" /> View
+        </label>
+        <label class="checkbox-inline">
+          <input type="checkbox" ng-model="form.authenticationRules.update" /> Update
+        </label>
+        <p class="help-block">
+          Authentication rules decide whether or not the user needs to be logged in to create, view or update a form.
+        </p>
+      </div>
     </div>
     <input class="btn btn-primary" type="submit" value="Save Form" ng-disabled="!validateForm()" />
   </div>

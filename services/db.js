@@ -2,8 +2,23 @@ var apps = [
   {
     id: 1,
     title: "Example App",
-    forms: [{"fields":[{"title":"String Field","type":"text","required":true,"id":"1","order":1},{"title":"Number Field","type":"number","id":"2","order":2},{"title":"Date Field","type":"date","id":"3","order":3},{"title":"Boolean Field","type":"boolean","id":"4","order":4},{"title":"Radio Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"radio","id":"5","order":5},{"title":"Checkbox Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"checkbox","id":"6","order":6},{"title":"Select Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"select","id":"7","order":7},{"title":"Multi-Select Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"multi-select","id":"8","order":8}],requiresAuthentication:true,"title":"Example Form","id":1,"nextFieldId":9}],
-    listings: [{"fields":{"1":true,"2":true,"3":true,"4":true,"5":true,"6":true,"7":false,"8":false},"title":"Example Listing","formId":1,"linkToUpdateForm":"useField","fieldLinkingToUpdateForm":"1","id":1,"order":[{"id":"1","order":1},{"id":"4","order":2},{"id":"2","order":3},{"id":"3","order":4},{"id":"5","order":5},{"id":"6","order":6}]}],
+    forms: [{
+      "fields":[{"title":"String Field","type":"text","required":true,"id":"1","order":1},{"title":"Number Field","type":"number","id":"2","order":2},{"title":"Date Field","type":"date","id":"3","order":3},{"title":"Boolean Field","type":"boolean","id":"4","order":4},{"title":"Radio Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"radio","id":"5","order":5},{"title":"Checkbox Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"checkbox","id":"6","order":6},{"title":"Select Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"select","id":"7","order":7},{"title":"Multi-Select Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"multi-select","id":"8","order":8}],
+      "authenticationRules": { "create": true, "view": false, "update": false },
+      "title":"Example Form",
+      "id":1,
+      "nextFieldId":9
+    }],
+    listings: [{
+      "fields":{"1":true,"2":true,"3":true,"4":true,"5":true,"6":true,"7":false,"8":false},
+      "title":"Example Listing",
+      "formId":1,
+      "linkToUpdateForm":"useField",
+      "fieldLinkingToUpdateForm":"1",
+      "id":1,
+      "order":[{"id":"1","order":1},{"id":"4","order":2},{"id":"2","order":3},{"id":"3","order":4},{"id":"5","order":5},{"id":"6","order":6}],
+      "requiresAuthentication": false
+    }],
     navLinks: {
       links: [{"text":"Examples","type":"dropdown","id":1},{"text":"Example Form","type":"link","linkTarget":{"name":"Example Form","id":1,"type":"Forms"},"parentId":1,"id":2},{"text":"Example Listing","type":"link","linkTarget":{"name":"Example Listing","id":1,"type":"Listings"},"parentId":1,"id":3}, {"text":"Example Form","type":"link","linkTarget":{"name":"Example Form","id":1,"type":"Forms"},"id":4},{"text":"Example Listing","type":"link","linkTarget":{"name":"Example Listing","id":1,"type":"Listings"},"id":5}],
       showLinks: { login: true, registration: true }
@@ -228,6 +243,21 @@ exports.getDeployedApp = function(id, cb){
   cb(app);
 };
 
+exports.getDeployedForm = function(appId, formId, cb){
+  //appId = Number(appId);
+  formId = Number(formId);
+
+  exports.getDeployedApp(appId, function(app){
+    if(app){
+      var form = app.forms.filter(function(form) { return form.id === formId; })[0];
+
+      cb(form);
+    }
+    else {
+      cb();
+    }
+  });
+};
 exports.getDeployedListing = function(appId, listingId, cb){
   //appId = Number(appId);
   listingId = Number(listingId);

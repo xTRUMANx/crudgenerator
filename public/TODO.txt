@@ -1,5 +1,6 @@
 Allow select list to have multiple rows visible at the same time.
 Do not allow form fields to have duplicate titles (client-side complete, server-side remains)
+Let admin manage users (activation, password resets)
 Relationships between forms (get select options from form data)
     - If field.type is options, ask the user if they want to source the data from another form
     - If not, let them type in option values as they do now
@@ -18,11 +19,6 @@ Present listing by in list by specifying a custom template
     - User selects fields to show in listing
     - User selects list format (as opposed to current tabular format)
     - User select how each field is represented by choosing options (element type, size, etc.)
-Authentication
-    - Lock down whole or part of app behind a login
-    - Requires a way to register user
-    - Let admin decide to allow open registration (with or without approval)
-    - Let admin manage users (activation, password resets)
 Authorization
     - Mark certain pages as accessible by certain roles
     - Admin manages roles

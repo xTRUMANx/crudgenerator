@@ -48,6 +48,10 @@ exports.appLoginGET = function(req, res){
       var success = "Successfully registered.";
     }
 
+    if(req.query.requiresAuthentication){
+      var error = "You need to be logged in to perform that action.";
+    }
+
     res.render("appLogin", {title: "Login", vm: { app: app, error: error, success: success }, navLinks: topLevelNavLinks, showLinks: app.navLinks.showLinks, username: req.cookies.username });
   });
 };
@@ -137,8 +141,15 @@ function createAppFormView(req, res){
     var formId = Number(req.params.formId);
     var form = app.forms.filter(function(form) { return form.id === formId; })[0];
 
-    if(form.requiresAuthentication && !req.cookies.username){
-      res.redirect("/deploys/" + appId + "/login");
+    if(form.authenticationRules.create && !req.cookies.username){
+      res.redirect("/deploys/" + appId + "/login?requiresAuthentication=true");
+
+      return;
+    }
+
+    if(form.authenticationRules.view && req.query.formDataId && !req.cookies.username){
+      res.redirect("/deploys/" + appId + "/login?requiresAuthentication=true");
+
       return;
     }
 
@@ -162,23 +173,31 @@ exports.saveAppForm = function(req, res){
   var formId = req.params.formId;
   var formData = req.body;
 
-  validateForm(appId, formId, req, function(err){
-    if(!err.length) {
-      // if valid, pass to db.saveForm
+  db.getDeployedForm(appId, formId, function(form){
+    if(form.authenticationRules.update && formData.id && !req.cookies.username){
+      res.redirect("/deploys/" + appId + "/login?requiresAuthentication=true");
 
-      db.saveFormData(appId, formId, formData, req.body.id, function(){
-        var url = "/deploys/" + appId + "/forms/" + formId.toString() + "?saved=true";
-
-        res.redirect(url);
-      });
+      return;
     }
-    else{
-      req.locals = req.locals || {};
-      req.locals.errors = err;
-      req.locals.formData = formData;
 
-      createAppFormView(req, res);
-    }
+    validateForm(appId, formId, req, function(err){
+      if(!err.length) {
+        // if valid, pass to db.saveForm
+
+        db.saveFormData(appId, formId, formData, req.body.id, function(){
+          var url = "/deploys/" + appId + "/forms/" + formId.toString() + "?saved=true";
+
+          res.redirect(url);
+        });
+      }
+      else{
+        req.locals = req.locals || {};
+        req.locals.errors = err;
+        req.locals.formData = formData;
+
+        createAppFormView(req, res);
+      }
+    });
   });
 };
 
@@ -237,9 +256,10 @@ exports.appListing = function(req, res){
   var appId = req.params.appId;
   var listingId = req.params.listingId;
 
-  var listing= db.getDeployedListing(appId, listingId, function(listing){
+  db.getDeployedListing(appId, listingId, function(listing){
     if(listing.requiresAuthentication && !req.cookies.username){
-      res.redirect("/deploys/" + appId + "/login");
+      res.redirect("/deploys/" + appId + "/login?requiresAuthentication=true");
+
       return;
     }
 
@@ -247,9 +267,11 @@ exports.appListing = function(req, res){
       // Get listing data
       db.getFormData(appId, listing.formId, null, function(data){
         var fieldIds = [];
+
         for(var key in listing.fields) {
           if(listing.fields[key]) fieldIds.push(key);
         }
+
         db.getForm(appId, listing.formId, function(form){
           var listingFields = form.fields.filter(function(field){ return fieldIds.indexOf(field.id) > -1});
 
