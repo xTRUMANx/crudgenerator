@@ -20,6 +20,12 @@ exports.appHome = function(req, res){
   var appId = req.params.appId;
 
   db.getDeployedApp(appId, function(app){
+    if(!app) {
+      res.send(404, "app not found");
+
+      return;
+    }
+
     var topLevelNavLinks = app.navLinks.links.filter(function(navLink){ return !navLink.parentId; });
 
     topLevelNavLinks.forEach(function(navLink){
@@ -34,22 +40,29 @@ exports.appLoginGET = function(req, res){
   var appId = req.params.appId;
 
   db.getDeployedApp(appId, function(app){
+    if(!app) {
+      res.send(404, "app not found");
+
+      return;
+    }
+
     var topLevelNavLinks = app.navLinks.links.filter(function(navLink){ return !navLink.parentId; });
 
     topLevelNavLinks.forEach(function(navLink){
       navLink.children = app.navLinks.links.filter(function(nL){ return nL.parentId === navLink.id; });
     });
 
-    if(req.query.invalid){
-      var error = "Invalid username or password";
-    }
-
     if(req.query.registered){
       var success = "Successfully registered.";
     }
 
-    if(req.query.requiresAuthentication){
-      var error = "You need to be logged in to perform that action.";
+    var error;
+
+    if(req.query.invalid){
+      error = "Invalid username or password";
+    }
+    else if(req.query.requiresAuthentication){
+      error = "You need to be logged in to perform that action.";
     }
 
     res.render("appLogin", {title: "Login", vm: { app: app, error: error, success: success }, navLinks: topLevelNavLinks, showLinks: app.navLinks.showLinks, username: req.cookies.username });
@@ -76,8 +89,15 @@ exports.appRegisterGET = function(req, res){
   var appId = req.params.appId;
 
   db.getDeployedApp(appId, function(app){
+    if(!app) {
+      res.send(404, "app not found");
+
+      return;
+    }
+
     if(app.registration.type !== "open") {
       res.send("page not found", 404);
+
       return;
     }
 
@@ -100,8 +120,15 @@ exports.appRegisterPOST = function(req, res){
   var registrationForm = req.body;
 
   db.getDeployedApp(appId, function(app){
+    if(!app) {
+      res.send(404, "app not found");
+
+      return;
+    }
+
     if(app.registration.type !== "open") {
       res.send("page not found", 404);
+
       return;
     }
 
@@ -132,6 +159,12 @@ function createAppFormView(req, res){
   var appId = req.params.appId;
 
   db.getDeployedApp(appId, function(app){
+    if(!app) {
+      res.send(404, "app not found");
+
+      return;
+    }
+
     var topLevelNavLinks = app.navLinks.links.filter(function(navLink){ return !navLink.parentId; });
 
     topLevelNavLinks.forEach(function(navLink){
@@ -174,6 +207,12 @@ exports.saveAppForm = function(req, res){
   var formData = req.body;
 
   db.getDeployedForm(appId, formId, function(form){
+    if(!form) {
+      res.send(404, "form not found");
+
+      return;
+    }
+
     if(form.authenticationRules.update && formData.id && !req.cookies.username){
       res.redirect("/deploys/" + appId + "/login?requiresAuthentication=true");
 
@@ -257,6 +296,12 @@ exports.appListing = function(req, res){
   var listingId = req.params.listingId;
 
   db.getDeployedListing(appId, listingId, function(listing){
+    if(!listing) {
+      res.send(404, "listing not found");
+
+      return;
+    }
+
     if(listing.requiresAuthentication && !req.cookies.username){
       res.redirect("/deploys/" + appId + "/login?requiresAuthentication=true");
 
