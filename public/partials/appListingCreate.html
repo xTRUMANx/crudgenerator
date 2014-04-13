@@ -85,25 +85,29 @@
 
   <table class="table table-bordered table-condensed table-striped table-hover" ng-if="!noSelectedFields()">
     <thead>
-      <th ng-if="listing.linkToUpdateForm === 'separateColumn'">
-        Details
-      </th>
-      <th ng-repeat="field in orderedListingFields()">
-        {{field.title}}
-      </th>
+      <tr>
+        <th ng-if="listing.linkToUpdateForm === 'separateColumn'">
+          Details
+        </th>
+        <th ng-repeat="field in orderedListingFields()">
+          {{field.title}}
+        </th>
+      </tr>
     </thead>
     <tbody>
-      <td ng-if="listing.linkToUpdateForm === 'separateColumn'">
-        <a href="">Details</a>
-      </td>
-      <td ng-repeat="field in orderedListingFields()">
-        <span ng-if="listing.linkToUpdateForm !== 'useField' || (listing.fieldLinkingToUpdateForm !== field.id)">
-          {{sampleValue(field)}}
-        </span>
-        <a href="" ng-if="listing.linkToUpdateForm === 'useField' && listing.fieldLinkingToUpdateForm === field.id">
-          {{sampleValue(field)}}
-        </a>
-      </td>
+      <tr>
+        <td ng-if="listing.linkToUpdateForm === 'separateColumn'">
+          <a href="">Details</a>
+        </td>
+        <td ng-repeat="field in orderedListingFields()">
+          <span ng-if="listing.linkToUpdateForm !== 'useField' || (listing.fieldLinkingToUpdateForm !== field.id)">
+            {{sampleValue(field)}}
+          </span>
+          <a href="" ng-if="listing.linkToUpdateForm === 'useField' && listing.fieldLinkingToUpdateForm === field.id">
+            {{sampleValue(field)}}
+          </a>
+        </td>
+      </tr>
     </tbody>
   </table>
 </div>

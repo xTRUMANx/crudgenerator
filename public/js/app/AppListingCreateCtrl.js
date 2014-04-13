@@ -48,7 +48,7 @@ appModule.controller("AppListingCreateCtrl", function($scope, $routeParams, $loc
 
     var fieldIds = [];
     for(var key in $scope.listing.fields) {
-      if($scope.listing.fields[key]) fieldIds.push(key);
+      if($scope.listing.fields[key]) fieldIds.push(Number(key));
     }
 
     return $scope.selectedForm().fields.filter(function(field){ return fieldIds.indexOf(field.id) > -1});
@@ -60,9 +60,7 @@ appModule.controller("AppListingCreateCtrl", function($scope, $routeParams, $loc
     var listingFields = $scope.listingFields();
 
     listingFields.forEach(function(field){
-      var fieldOrder = $scope.orderedSelectedFields().filter(function(f){ return f.id === field.id; })[0].order;
-
-      field.order = fieldOrder;
+      field.order = $scope.orderedSelectedFields().filter(function(f){ return f.id === field.id; })[0].order;
     });
 
     return listingFields.sort(function(a,b){ return a.order > b.order; });
@@ -78,7 +76,7 @@ appModule.controller("AppListingCreateCtrl", function($scope, $routeParams, $loc
     var fieldIds = [];
 
     for(var key in $scope.listing.fields) {
-      if($scope.listing.fields[key]) fieldIds.push(key);
+      if($scope.listing.fields[key]) fieldIds.push(Number(key));
     }
 
     return fieldIds;

@@ -1,274 +1,1133 @@
-var apps = [
-  {
-    id: 1,
-    title: "Example App",
-    forms: [{
-      "fields":[{"title":"String Field","type":"text","required":true,"id":"1","order":1},{"title":"Number Field","type":"number","id":"2","order":2},{"title":"Date Field","type":"date","id":"3","order":3},{"title":"Boolean Field","type":"boolean","id":"4","order":4},{"title":"Radio Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"radio","id":"5","order":5},{"title":"Checkbox Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"checkbox","id":"6","order":6},{"title":"Select Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"select","id":"7","order":7},{"title":"Multi-Select Options Field","type":"options","options":"First Option\nSecond Option\nThird Option","optionType":"multi-select","id":"8","order":8}],
-      "authenticationRules": { "create": true, "view": false, "update": false },
-      "title":"Example Form",
-      "id":1,
-      "nextFieldId":9
-    }],
-    listings: [{
-      "fields":{"1":true,"2":true,"3":true,"4":true,"5":true,"6":true,"7":false,"8":false},
-      "title":"Example Listing",
-      "formId":1,
-      "linkToUpdateForm":"useField",
-      "fieldLinkingToUpdateForm":"1",
-      "id":1,
-      "order":[{"id":"1","order":1},{"id":"4","order":2},{"id":"2","order":3},{"id":"3","order":4},{"id":"5","order":5},{"id":"6","order":6}],
-      "requiresAuthentication": false
-    }],
-    navLinks: {
-      links: [{"text":"Examples","type":"dropdown","id":1},{"text":"Example Form","type":"link","linkTarget":{"name":"Example Form","id":1,"type":"Forms"},"parentId":1,"id":2},{"text":"Example Listing","type":"link","linkTarget":{"name":"Example Listing","id":1,"type":"Listings"},"parentId":1,"id":3}, {"text":"Example Form","type":"link","linkTarget":{"name":"Example Form","id":1,"type":"Forms"},"id":4},{"text":"Example Listing","type":"link","linkTarget":{"name":"Example Listing","id":1,"type":"Listings"},"id":5}],
-      showLinks: { login: true, registration: true }
-    },
-    users: [{id: "admin", password: "123"}],
-    registration: { type: "open" }
-  }
-],
-  deployedApps = {},
-  data = {},
-  appsUsers = {1: [{id: "admin", password: "123"}]};
+var pg = require("pg");
+var q = require("q");
+var crypto = require("crypto");
+var util = require("util");
+var connectionString = "postgres://mustafa:mustafacrudgen@localhost/crudgen";
+
+function hasher(password, salt, cb){
+  var iterations = 10000;
+  var length = 40;
+
+  crypto.pbkdf2(password, salt, iterations, length, function(err, derivedKey){
+    if(err) {
+      cb(err);
+
+      return;
+    }
+
+    var passwordHash = derivedKey.toString("hex");
+
+    cb(err, passwordHash);
+  });
+}
 
 //////////////////////////////////////////
 // This section related to app building //
 //////////////////////////////////////////
 
-exports.getApps = function(cb){
-  var appsSummary = apps.map(function(app){
-    return {
-      id: app.id,
-      title: app.title,
-      formsCount: app.forms.length,
-      listingsCount: app.listings.length
-    };
-  });
+exports.authenticateUser = function(credentials, cb){
+  var sql = "select * from users where email = $1";
 
-  cb(appsSummary);
-};
+  pg.connect(connectionString, function(err, client, done){
+    if(err) {
+      cb(err);
 
-exports.getApp = function(id, cb){
-  id = Number(id);
+      return;
+    }
 
-  var app = apps.filter(function(app) { return app.id === id; })[0];
+    client.query(sql, [credentials.email], function(err, result){
+      done();
 
-  if(app){
-    app.deployed = !!deployedApps[id];
+      if(err){
+        cb(err);
 
-    app.usersCount = appsUsers[id].length;
-  }
+        return;
+      }
 
-  cb(app);
-};
+      if(result.rowCount){
+        hasher(credentials.password, result.rows[0]["salt"], function(err, passwordHash){
+          if(err){
+            cb(err);
 
-exports.createApp = function(app, cb){
-  app.forms = [];
-  app.listings = [];
-  app.navLinks = { links: [] };
+            return;
+          }
 
-  app.id = (apps[apps.length - 1] || {id : 0}).id + 1;
+          var actualPasswordHash = result.rows[0]["passwordhash"];
 
-  apps.push(app);
+          var isPasswordCorrect = passwordHash === actualPasswordHash;
 
-  cb({ id: app.id });
-};
-
-exports.saveForm = function(appId, form, cb){
-  appId = Number(appId);
-
-  var matchingApp = apps.filter(function(app) { return app.id === appId; })[0];
-
-  if(!form.id) {
-    form.id = (matchingApp.forms[matchingApp.forms.length - 1] || {id : 0}).id + 1;
-
-    form.nextFieldId = 1;
-
-    form.fields.forEach(function(field){
-      field.id = form.nextFieldId++ + '';
-    });
-
-    matchingApp.forms.push(form);
-  }
-  else {
-    var oldForm = matchingApp.forms.filter(function(f) { return f.id === form.id; })[0];
-
-    form.fields.forEach(function(field){
-      if(!field.id || !oldForm.fields.filter(function(f){ return f.id === field.id; }).length) {
-        field.id = oldForm.nextFieldId++ + '';
+          cb(err, isPasswordCorrect);
+        })
+      }
+      else {
+        cb(err, false);
       }
     });
-
-    form.nextFieldId = oldForm.nextFieldId;
-
-    var index = matchingApp.forms.indexOf(oldForm);
-
-    matchingApp.forms[index] = form;
-  }
-
-  cb();
+  });
 };
 
-exports.saveListing = function(appId, listing, cb){
-  appId = Number(appId);
-  var matchingApp = apps.filter(function(app) { return app.id === appId; })[0];
+exports.getApps = function(username, cb){
+  var apps = [];
 
-  if(!listing.id) {
-    listing.id = (matchingApp.listings[matchingApp.listings.length - 1] || {id : 0}).id + 1;
-    matchingApp.listings.push(listing);
+  pg.connect(connectionString, function(err, client, done){
+    if(err) {
+      cb(err);
+
+      return;
+    }
+
+    var sql = "select apps.*, count(forms.id) as formsCount, count(listings.id) as listingsCount " +
+              "from apps " +
+              "left join forms " +
+              "on apps.id = forms.appid " +
+              "left join listings " +
+              "on apps.id = listings.appid " +
+              "where userid = (select id from users where email = $1) " +
+              "group by apps.id " +
+              "order by apps.id";
+
+    var query = client.query(sql, [username]);
+
+    query.on("error", function(err){
+      cb(err);
+    });
+
+    query.on("row", function(row){
+      var app = row.data;
+
+      app.id = row.id;
+      app.formsCount = row.formscount;
+      app.listingsCount = row.listingscount;
+
+      apps.push(app);
+    });
+
+    query.on("end", function(){
+      done();
+
+      var appsSummary = apps.map(function(app){
+        return {
+          id: app.id,
+          title: app.title,
+          formsCount: app.formsCount,
+          listingsCount: app.listingsCount
+        };
+      });
+
+      cb(null, appsSummary);
+    });
+  });
+};
+
+exports.getApp = function(id, username, cb){
+  var app = null;
+
+  pg.connect(connectionString, function(err, client, done){
+    if(err){
+      cb(err);
+
+      return;
+    }
+
+    var appSql = "select apps.id, apps.data, apps.showlinks, apps.registration, " +
+                "count(appusers.username)::int as userscount, deployedapps.id as deployedAppId " +
+                "from apps " +
+                "left join appusers " +
+                "on apps.id = appusers.appid " +
+                "left join deployedapps " +
+                "on apps.id = deployedapps.appid " +
+                "where apps.id = $1 and userid = (select id from users where email = $2) " +
+                "group by apps.id, apps.data::text, apps.showlinks::text, apps.registration::text, deployedapps.id";
+
+    var query = client.query(appSql, [id, username]);
+
+    query.on("error", function(err){
+      done();
+
+      cb(err);
+    });
+
+    query.on("row", function(row){
+      app = row.data;
+
+      app.id = row.id;
+
+      app.navLinks = {};
+
+      app.navLinks.showLinks = row.showlinks;
+
+      app.registration = row.registration;
+
+      app.usersCount = row.userscount;
+
+      app.deployed = !!row.deployedappid;
+    });
+
+    query.on("end", function(){
+      if(app){
+        var promises = [];
+
+        var formsQueryDeferred = q.defer();
+        promises.push(formsQueryDeferred.promise);
+
+        var fieldsDeferred = q.defer();
+        promises.push(fieldsDeferred.promise);
+
+        var formsSql = "select * from forms where appid = $1 order by id";
+
+        client.query(formsSql, [id], function(err, result){
+          if(err){
+            formsQueryDeferred.reject(err);
+            fieldsDeferred.resolve();
+
+            return;
+          }
+
+          app.forms = [];
+
+          result.rows.forEach(function(row){
+            var form = row.data;
+
+            form.id = row.id;
+
+            app.forms.push(form);
+          });
+
+          if(result.rowCount) {
+            (function getAllFieldsForApp() {
+              var fieldsSql = "select * from fields where formid in (select id from forms where appid = $1)";
+
+              client.query(fieldsSql, [id], function(err, result){
+                if(err){
+                  fieldsDeferred.reject(err);
+
+                  return;
+                }
+
+                result.rows.forEach(function(row){
+                  var form = app.forms.filter(function(form){ return form.id === row.formid; })[0];
+
+                  if(form){
+                    form.fields = form.fields || [];
+
+                    var field = row.data;
+                    field.id = row.id;
+
+                    form.fields.push(field);
+                  }
+                });
+
+                fieldsDeferred.resolve();
+              });
+            })();
+          }
+          else{
+            fieldsDeferred.resolve();
+          }
+
+          formsQueryDeferred.resolve();
+        });
+
+        var listingsQueryDeferred = q.defer();
+        promises.push(listingsQueryDeferred.promise);
+
+        var listingsSql = "select * from listings where appid = $1 order by id";
+
+        client.query(listingsSql, [id], function(err, result){
+          if(err){
+            listingsQueryDeferred.reject(err);
+
+            return;
+          }
+
+          app.listings = [];
+
+          result.rows.forEach(function(row){
+            var listing = row.data;
+
+            listing.id = row.id;
+
+            app.listings.push(listing);
+          });
+
+          listingsQueryDeferred.resolve();
+        });
+
+        var navLinksDeferred = q.defer();
+        promises.push(navLinksDeferred.promise);
+
+        exports.getNavLinks(id, username, function(err, navLinks){
+          app.navLinks.links = navLinks;
+
+          err ? navLinksDeferred.reject(err) : navLinksDeferred.resolve();
+        });
+
+        q.
+          all(promises).
+          then(function(){
+            cb(null, app);
+          }).
+          fail(function(err){
+            cb(err);
+          }).
+          fin(function(){
+            done();
+          });
+      }
+      else{
+        done();
+
+        cb();
+      }
+    });
+  });
+};
+
+exports.createApp = function(app, username, cb){
+  pg.connect(connectionString, function(err, client, done){
+    if(err){
+      cb(err);
+
+      return;
+    }
+
+    var sql = "insert into apps (id, data, userid) " +
+              "values (default, $1, (select id from users where email = $2)) " +
+              "returning id";
+
+    var query = client.query(sql, [app, username]);
+
+    query.on("error", function(err){
+      cb(err);
+    });
+
+    var id = null;
+
+    query.on("row", function(row){
+      id = row.id;
+    });
+
+    query.on("end", function(){
+      done();
+
+      cb(null, id);
+    });
+  });
+};
+
+exports.getForm = function(appId, formId, username, cb){
+  pg.connect(connectionString, function(err, client, done){
+    if(err){
+      cb(err);
+
+      return;
+    }
+
+    var promises = [];
+
+    var formsSql = "select * " +
+      "from forms " +
+      "where id = $1 " +
+        "and appid = $2 " +
+        "and exists (select id " +
+                    "from apps " +
+                    "where id = $2 and userid = (select id " +
+                                                "from users " +
+                                                "where email = $3)) " +
+      "order by id";
+
+    var formDeferred = q.defer();
+
+    promises.push(formDeferred.promise);
+
+    var formsQuery = client.query(formsSql, [formId, appId, username]);
+    var form = null;
+
+    formsQuery.on("error", function(err){
+      formDeferred.reject(err);
+    });
+
+    formsQuery.on("row", function(row){
+      form = row.data;
+      form.id = row.id;
+    });
+
+    formsQuery.on("end", function(){
+      formDeferred.resolve();
+    });
+
+    var fieldsSql = "select * " +
+                    "from fields " +
+                    "where formid = $1 " +
+                      "and exists (select id " +
+                                  "from apps " +
+                                  "where id = $2 and userid = (select id " +
+                                                              "from users " +
+                                                              "where email = $3)) " +
+                    "order by id";
+
+    var fieldsDeferred = q.defer();
+
+    promises.push(fieldsDeferred.promise);
+
+    var fieldsQuery = client.query(fieldsSql, [formId, appId, username]);
+    var fields = [];
+
+    fieldsQuery.on("error", function(err){
+      fieldsDeferred.reject(err);
+    });
+
+    fieldsQuery.on("row", function(row){
+      var field = row.data;
+      field.id = row.id;
+      fields.push(field);
+    });
+
+    fieldsQuery.on("end", function(){
+      fieldsDeferred.resolve();
+    });
+
+    q.all(promises).
+      then(function(){
+        form.fields = fields;
+
+        cb(null, form);
+      }).
+      fail(function(err){
+        cb(err);
+      }).
+      fin(function(){
+        done();
+      });
+  });
+};
+
+exports.saveForm = function(appId, form, username, cb){
+  pg.connect(connectionString, function(err, client, done){
+    if(err){
+      cb(err);
+    }
+
+    var fields = form.fields;
+
+    delete form.fields;
+
+    var query, parameters;
+
+    if(!form.id) {
+      var sql = "insert into forms (id, data, appId) " +
+        "values (default, $1, (select id from apps where id = $2 and userid = (select id from users where email = $3))) " +
+        "returning id";
+
+      query = client.query(sql, [form, appId, username]);
+      var formId = null;
+
+      query.on("error", function (err) {
+        cb(err);
+      });
+
+      query.on("row", function(row){
+        formId = row.id;
+      });
+
+      query.on("end", function () {
+        var sql = "insert into fields (data, formId) values ";
+
+        var valuesSql = [];
+
+        for(var i =0; i < fields.length * 2; i+=2){
+          valuesSql.push(util.format("($%d, $%d)", i + 1, i + 2));
+        }
+
+        sql += valuesSql.join(", ");
+
+        parameters = fields.map(function(field){ return [field, formId]}).reduce(function(a, b){ return a.concat(b)});
+
+        client.query(sql, parameters, function(err){
+          done();
+
+          if(err){
+            cb(err);
+
+            return;
+          }
+
+          cb();
+        });
+      });
+    }
+    else{
+      var promises = [];
+
+      var formsSql = "update forms set " +
+                    "data = $1 " +
+                    "where id = $2 and " +
+                    "exists (select id from apps where id = $3 and userid = (select id from users where email = $4))";
+
+      var formsUpdateDeferred = q.defer();
+      promises.push(formsUpdateDeferred.promise);
+
+      query = client.query(formsSql, [form, form.id, appId, username]);
+
+      query.on("error", function (err) {
+        formsUpdateDeferred.reject(err);
+      });
+
+      query.on("end", function () {
+        formsUpdateDeferred.resolve();
+      });
+
+      // Separate fields into new and existing fields
+      var newFields = [];
+      var existingFields = [];
+
+      fields.forEach(function(field){
+        field.id ? existingFields.push(field) : newFields.push(field);
+      });
+
+      // Delete removed fields
+      var remainingFieldIds = existingFields.map(function(field){ return field.id });
+
+      var removedFieldsDeferred = q.defer();
+      promises.push(removedFieldsDeferred.promise);
+
+      var removedFieldsSql = "delete from fields " +
+                              "where formId = $1 " +
+                              "and exists (select id " +
+                                          "from apps " +
+                                          "where id = $2 and userid = (select id " +
+                                                                      "from users " +
+                                                                      "where email = $3))";
+
+      if(remainingFieldIds.length) {
+        var inSql = remainingFieldIds.map(function (field, i) {
+          var offset = 4;
+
+          return "$" + (i + offset)
+        }).join(", ");
+
+        removedFieldsSql += "and id not in (" + inSql + ")";
+      }
+
+      parameters = [form.id, appId, username].concat(remainingFieldIds);
+
+      client.query(removedFieldsSql, parameters, function(err){
+        if(err){
+          removedFieldsDeferred.reject(err);
+
+          return;
+        }
+
+        // For new fields, insert them into fields table
+        if(newFields.length) {
+          var newFieldsSql = "insert into fields (data, formId) values ";
+
+          var valuesSql = [];
+
+          for (var i = 0; i < newFields.length; i ++) {
+            var offset = i * 2;
+            valuesSql.push(util.format("($%d, $%d)", offset + 1, offset + 2));
+          }
+
+          newFieldsSql += valuesSql.join(", ");
+
+          parameters = newFields.map(function (field) {
+            return [field, form.id]
+          }).reduce(function (a, b) {
+            return a.concat(b)
+          });
+
+          client.query(newFieldsSql, parameters, function (err) {
+            err ? removedFieldsDeferred.reject(err) : removedFieldsDeferred.resolve();
+          });
+        }
+        else{
+          removedFieldsDeferred.resolve();
+        }
+      });
+
+      // For existing fields, update them
+      if(existingFields.length){
+        var existingFieldsDeferred = q.defer();
+        promises.push(existingFieldsDeferred.promise);
+
+        parameters = [];
+
+        var unions = existingFields.map(function(field, i){
+          var id = field.id;
+
+          delete field.id;
+
+          parameters = parameters.concat(id, field, form.id);
+
+          var offset = i * 3;
+
+          return util.format("select row($%d, $%d, $%d)::fields as field", offset + 1, offset + 2, offset + 3);
+        }).join(" union all ");
+
+        var existingFieldsSql = util.format(
+            "update fields set " +
+            "data = (existing).field.data " +
+            "from (%s) as existing " +
+            "where id = (existing).field.id", unions);
+
+        var existingFieldsQuery = client.query(existingFieldsSql, parameters);
+
+        existingFieldsQuery.on("error", function(err){
+          existingFieldsDeferred.reject(err);
+        });
+
+        existingFieldsQuery.on("end", function(){
+          existingFieldsDeferred.resolve();
+        });
+      }
+
+      q.all(promises).
+        then(function(){
+          cb();
+        }).
+        fail(function(err){
+          cb(err);
+        }).
+        fin(function(){
+          done();
+        });
+    }
+  });
+};
+
+exports.saveListing = function(appId, listing, username, cb){
+  if(listing.id){
+    updateExistingListing(appId, listing, cb);
   }
-  else {
-    exports.getListing(appId, listing.id, function(oldListing){
-      var index = matchingApp.listings.indexOf(oldListing);
+  else{
+    createNewListing(appId, listing, cb);
+  }
 
-      matchingApp.listings[index] = listing;
+  function updateExistingListing(){
+    pg.connect(connectionString, function(err, client, done) {
+      if (err) {
+        cb(err);
+
+        return;
+      }
+
+      var sql = "update listings set " +
+                "data = $1 " +
+                "where id = $2 " +
+                  "and appid = (select id " +
+                              "from apps " +
+                              "where id = $3 and userid = (select id " +
+                                                          "from users " +
+                                                          "where email = $4))";
+
+      client.query(sql, [listing, listing.id, appId, username], function(err){
+        done();
+
+        cb(err);
+      });
     });
   }
 
-  cb();
+  function createNewListing() {
+    pg.connect(connectionString, function(err, client, done){
+      if(err){
+        cb(err);
+
+        return;
+      }
+
+      var sql = "insert into listings (id, data, appId) " +
+                "values (default, $1, (select id " +
+                                      "from apps " +
+                                      "where id = $2 and userid = (select id " +
+                                                                  "from users " +
+                                                                  "where email = $3)))";
+
+      client.query(sql, [listing, appId, username], function(err){
+        cb(err);
+
+        done();
+      });
+    });
+  }
 };
 
-exports.getForm = function(appId, formId, cb){
-  exports.getApp(appId, function(app){
-    if(app){
-      formId = Number(formId);
+exports.getListing = function(appId, listingId, username, cb){
+  pg.connect(connectionString, function(err, client, done){
+    if(err){
+      cb(err);
 
-      var form = app.forms.filter(function(form) { return form.id === formId; })[0];
+      return;
+    }
 
-      cb(form);
-    }
-    else {
-      cb();
-    }
-  });
+    var sql = "select id, data " +
+              "from listings " +
+              "where id = $1 " +
+                "and appid = (select id " +
+                            "from apps " +
+                            "where id = $2 " +
+                              "and userid = (select id " +
+                                            "from users " +
+                                            "where email = $3))";
+
+    client.query(sql, [listingId, appId, username], function(err, result){
+      if(err){
+        cb(err);
+
+        done();
+
+        return;
+      }
+
+      var listing;
+
+      if(result.rowCount){
+        var row = result.rows[0];
+
+        listing = row.data;
+        listing.id = row.id;
+
+      }
+
+      cb(err, listing);
+
+      done();
+    });
+  })
 };
 
-exports.getListing = function(appId, listingId, cb){
-  exports.getApp(appId, function(app){
-    if(app){
-      listingId = Number(listingId);
+exports.getNavLinks = function(appId, username, cb){
+  pg.connect(connectionString, function(err, client, done){
+    if(err){
+      cb(err);
 
-      var listing = app.listings.filter(function(listing) { return listing.id === listingId; })[0];
-
-      cb(listing);
+      return;
     }
-    else {
-      cb();
-    }
-  });
-};
 
-exports.getNavLinks = function(appId, cb){
-  exports.getApp(appId, function(app){
-    var topLevelNavLinks = app.navLinks.links.filter(function(navLink){ return !navLink.parentId; });
+    var navLinks = [];
 
-    topLevelNavLinks.forEach(function(navLink){
-      navLink.children = app.navLinks.links.filter(function(nL){ return nL.parentId === navLink.id; });
+    var sql = "select id, data " +
+              "from navlinks " +
+              "where appid = $1 " +
+                "and appid = (select id " +
+                            "from apps " +
+                            "where id = $1 " +
+                              "and userid = (select id " +
+                                            "from users " +
+                                            "where email = $2))";
+
+    var query = client.query(sql, [appId, username]);
+
+    query.on("error", function(err){
+      cb(err);
+
+      done();
     });
 
-    cb(topLevelNavLinks);
+    query.on("row", function(row){
+      var navLink = row.data;
+
+      navLink.id = row.id;
+
+      navLinks.push(navLink);
+    });
+
+    query.on("end", function(){
+      cb(null, navLinks);
+
+      done();
+    });
   });
 };
 
-exports.saveNavLink = function(appId, navLink, cb){
-  exports.getApp(appId, function(app){
-    if(!navLink.id) {
-      navLink.id = (app.navLinks.links[app.navLinks.links.length - 1] || {id : 0}).id + 1;
+exports.saveNavLink = function(appId, navLink, username, cb){
+  var id = navLink.id;
 
-      app.navLinks.links.push(navLink);
+  delete  navLink.id;
+
+  if(id){
+    updateNavLink();
+  }
+  else{
+    createNavLink();
+  }
+
+  function updateNavLink(){
+    pg.connect(connectionString, function(err, client, done){
+      if(err){
+        cb(err);
+
+        return;
+      }
+
+      var sql = "update navlinks set " +
+                "data = $1 " +
+                "where id = $2 " +
+                  "and appid = (select id " +
+                              "from apps " +
+                              "where id = $3 " +
+                                "and userid = (select id " +
+                                              "from users " +
+                                              "where email = $4));";
+
+      client.query(sql, [navLink, id, appId, username], function(err){
+        cb(err, id);
+
+        done();
+      });
+    });
+  }
+
+  function createNavLink(){
+    pg.connect(connectionString, function(err, client, done){
+      if(err){
+        cb(err);
+
+        done();
+      }
+
+      var sql = "insert into navlinks (id, data, appid) " +
+                "values (default, $1, (select id " +
+                            "from apps " +
+                            "where id = $2 " +
+                              "and userid = (select id " +
+                                            "from users " +
+                                            "where email = $3)))" +
+                "returning id;";
+
+      client.query(sql, [navLink, appId, username], function(err, result){
+        if(err){
+          cb(err);
+
+          done();
+
+          return;
+        }
+
+        var id =result.rows[0].id;
+
+        cb(err, id);
+
+        done();
+      });
+    });
+  }
+};
+
+exports.saveNavLinksShowLinks = function(appId, showLinks, username, cb){
+  pg.connect(connectionString, function(err, client, done){
+    if(err){
+      cb(err);
+
+      return;
     }
-    else {
-      var oldNavLink = app.navLinks.links.filter(function(nL) { return nL.id === navLink.id; })[0];
 
-      var index = app.navLinks.links.indexOf(oldNavLink);
+    var sql = "update apps set " +
+              "showlinks = $1 " +
+              "where id = $2 " +
+                "and userid = (select id " +
+                              "from users " +
+                              "where email = $3);";
 
-      app.navLinks.links[index] = navLink;
-    }
+    client.query(sql, [showLinks, appId, username], function(err){
+      cb(err);
 
-    cb({ id: navLink.id });
+      done();
+    });
   });
 };
 
-exports.saveUser = function(appId, user, cb){
-  appId = Number(appId);
+exports.saveUser = function(appId, user, username, cb){
+  pg.connect(connectionString, function(err, client, done){
+    if(err){
+      cb(err);
 
-  appsUsers[appId].push(user);
+      return;
+    }
 
-  cb();
+    var sql = "insert into appusers (appid, username, passwordhash, salt) " +
+              "values ((select id " +
+                      "from apps " +
+                      "where id = $1 " +
+                      "and userid = (select id " +
+                                    "from users " +
+                                    "where email = $2)), $3, $4, $5);";
+
+    var salt = crypto.randomBytes(16).toString("hex");
+
+    hasher(user.password, salt, function(err, passwordHash){
+      if(err){
+        cb(err);
+
+        done();
+
+        return;
+      }
+
+      client.query(sql, [appId, username, user.id, passwordHash, salt], function(err){
+        cb(err);
+
+        done();
+      });
+    });
+  });
 };
 
-exports.getUsers = function(appId, cb){
-  appId = Number(appId);
+exports.getUsers = function(appId, username, cb){
+  pg.connect(connectionString, function(err, client, done){
+    if(err){
+      cb(err);
 
-  cb(appsUsers[appId]);
+      return;
+    }
+
+    var sql = "select username " +
+              "from appusers " +
+              "where appid = (select id " +
+                            "from apps " +
+                            "where id = $1 " +
+                              "and userid = (select id " +
+                                            "from users " +
+                                            "where email = $2))";
+
+    var query = client.query(sql, [appId, username]);
+
+    var users = [];
+
+    query.on("error", function(err){
+      cb(err);
+
+      done();
+    });
+
+    query.on("row", function(row){
+      users.push({ id: row.username });
+    });
+
+    query.on("end", function(){
+      cb(null, users);
+
+      done();
+    });
+  });
 };
 
-exports.authenticateUser = function(appId, loginForm, cb){
-  appId = Number(appId);
+exports.saveRegistration = function(appId, registration, username, cb){
+  pg.connect(connectionString, function(err, client, done){
+    if(err){
+      cb(err);
 
-  var user = appsUsers[appId] && appsUsers[appId].filter(function(u){ return u.id.toLowerCase() === loginForm.id.toLowerCase(); })[0];
+      return;
+    }
 
-  var validLogin = user && user.password === loginForm.password;
+    var sql = "update apps set " +
+              "registration = $1 " +
+              "where id = $2 " +
+                "and userid = (select id " +
+                              "from users " +
+                              "where email = $3)";
 
-  cb(validLogin);
+    client.query(sql, [registration, appId, username], function(err){
+      cb(err);
+
+      done();
+    });
+  });
 };
 
-exports.saveNavLinksShowLinks = function(appId, showLinks, cb){
-  appId = Number(appId);
+exports.deployApp = function(appId, username, cb){
+  exports.getApp(appId, username, function(err, app){
+    if(err){
+      cb(err);
 
-  var matchingApp = apps.filter(function(app) { return app.id === appId; })[0];
+      return;
+    }
 
-  matchingApp.navLinks.showLinks = showLinks;
+    pg.connect(connectionString, function(err, client, done){
+      if(err){
+        cb(err);
 
-  cb();
+        return;
+      }
+
+      var previouslyDeployed = app.deployed;
+
+      delete app.usersCount;
+      delete app.deployed;
+
+      var sql;
+
+      if(previouslyDeployed) {
+        sql = "update deployedapps set " +
+          "data = $1 " +
+          "where appid = $2 " +
+          "and appid = (select id " +
+          "from apps " +
+          "where id = $2 " +
+          "and userid = (select id " +
+          "from users " +
+          "where email = $3));";
+      }
+      else{
+        sql = "insert into deployedapps (data, appid) " +
+          "values ($1, (select id " +
+          "from apps " +
+          "where id = $2 " +
+          "and userid = (select id " +
+          "from users " +
+          "where email = $3)));"
+      }
+
+      client.query(sql, [app, appId, username], function(err){
+        cb(err);
+
+        done();
+      });
+    });
+  });
 };
 
 ///////////////////////////////////////////
 // This section related to deployed apps //
 ///////////////////////////////////////////
 
-exports.deployApp = function(app, cb){
-  var copy = require("../utils").copy;
+exports.getDeployedApp = function(id, cb){
+  pg.connect(connectionString, function(err, client, done){
+    if(err){
+      cb(err);
 
-  deployedApps[app.id] = copy(app);
+      return;
+    }
 
-  cb();
+    var sql = "select data from deployedapps where appid = $1";
+
+    client.query(sql, [id], function(err, result){
+      var app;
+
+      if(!err && result.rowCount){
+        app = result.rows[0].data;
+      }
+
+      cb(err, app);
+
+      done();
+    });
+  });
 };
 
-exports.getDeployedApp = function(id, cb){
-  id = Number(id);
+exports.authenticateAppUser = function(appId, loginForm, cb){
+  pg.connect(connectionString, function(err, client, done){
+    if(err) {
+      cb(err);
 
-  var app = deployedApps[id];
+      return;
+    }
 
-  cb(app);
+    var sql = "select * from appusers where appid = $1 and username = $2";
+
+    client.query(sql, [appId, loginForm.id], function(err, result){
+      done();
+
+      if(err){
+        cb(err);
+
+        return;
+      }
+
+      if(result.rowCount){
+        hasher(loginForm.password, result.rows[0]["salt"], function(err, passwordHash){
+          if(err){
+            cb(err);
+
+            return;
+          }
+
+          var actualPasswordHash = result.rows[0]["passwordhash"];
+
+          var isPasswordCorrect = passwordHash === actualPasswordHash;
+
+          cb(err, isPasswordCorrect);
+        })
+      }
+      else {
+        cb(err, false);
+      }
+    });
+  });
+};
+
+exports.registerUser = function(appId, user, cb){
+  pg.connect(connectionString, function(err, client, done){
+    if(err){
+      cb(err);
+
+      return;
+    }
+
+    var sql = "insert into appusers (appid, username, passwordhash, salt) " +
+              "values ((select id " +
+                      "from apps " +
+                      "where id = $1), " +
+                      "$2, $3, $4);";
+
+    var salt = crypto.randomBytes(16).toString("hex");
+
+    hasher(user.password, salt, function(err, passwordHash){
+      if(err){
+        cb(err);
+
+        done();
+
+        return;
+      }
+
+      client.query(sql, [appId, user.id, passwordHash, salt], function(err){
+        cb(err);
+
+        done();
+      });
+    });
+  });
 };
 
 exports.getDeployedForm = function(appId, formId, cb){
-  //appId = Number(appId);
   formId = Number(formId);
 
-  exports.getDeployedApp(appId, function(app){
+  exports.getDeployedApp(appId, function(err, app){
+    if(err){
+      cb(err);
+
+      return;
+    }
+
     if(app){
       var form = app.forms.filter(function(form) { return form.id === formId; })[0];
 
-      cb(form);
+      cb(null, form);
     }
     else {
       cb();
     }
   });
 };
+
 exports.getDeployedListing = function(appId, listingId, cb){
-  //appId = Number(appId);
   listingId = Number(listingId);
 
-  exports.getDeployedApp(appId, function(app){
+  exports.getDeployedApp(appId, function(err, app){
+    if(err){
+      cb(err);
+
+      return;
+    }
+
     if(app){
       var listing = app.listings.filter(function(listing) { return listing.id === listingId; })[0];
 
       listing.order.sort(function(a,b){ return a.order > b.order});
 
-      cb(listing);
+      cb(null, listing);
     }
     else {
       cb();
@@ -277,62 +1136,91 @@ exports.getDeployedListing = function(appId, listingId, cb){
 };
 
 exports.saveFormData = function(appId, formId, formData, id, cb){
-  appId = Number(appId);
-  formId = Number(formId);
-
-  data[appId]  = data[appId] || { nextId: 1 };
-  var appData = data[appId];
-  appData[formId] = appData[formId] || [];
-
-  var index = -1;
-
-  if(id) {
-    id = Number(id);
-
-    var row = appData[formId].filter(function(r){
-      return r.id === id;
-    })[0];
-
-    if(row){
-      index = appData[formId].indexOf(row);
-
-      formData.id = id;
-
-      appData[formId][index] = formData;
-    }
+  if(id){
+    updateFormData();
   }
   else{
-    formData.id = appData.nextId++;
-    appData[formId].push(formData);
+    createFormData();
   }
 
-  cb();
+  function updateFormData(){
+    pg.connect(connectionString, function(err, client, done){
+      if(err){
+        cb(err);
+
+        return;
+      }
+
+      var sql = "update formdata set data = $1 where id = $2;";
+
+      client.query(sql, [formData, id], function(err){
+        cb(err);
+
+        done();
+      });
+    });
+  }
+
+  function createFormData(){
+    pg.connect(connectionString, function(err, client, done){
+      if(err){
+        cb(err);
+
+        return;
+      }
+
+      var sql = "insert into formdata (appid, formid, data) values ($1, $2, $3);";
+
+      client.query(sql, [appId, formId, formData], function(err){
+        cb(err);
+
+        done();
+      });
+    });
+  }
 };
 
 exports.getFormData = function(appId, formId, formDataId, cb){
-  appId = Number(appId);
-  formId = Number(formId);
+  pg.connect(connectionString, function(err, client, done){
+    if(err){
+      cb(err);
 
-  var appData = data[appId] || {};
+      done();
+    }
 
-  var formData = appData[formId] || [];
+    var sql = "select id, data from formdata where appid = $1 and formid = $2";
 
-  if(formData.length && formDataId){
-    formDataId = Number(formDataId);
+    var parameters = [appId, formId];
 
-    formData = formData.filter(function(fD){
-      return fD.id === formDataId;
-    })[0];
-  }
+    if(formDataId){
+      sql += " and id = $3";
 
-  cb(formData);
-};
+      parameters.push(formDataId);
+    }
 
-exports.saveRegistration = function(appId, registration, cb){
-  appId = Number(appId);
-  var matchingApp = apps.filter(function(app) { return app.id === appId; })[0];
+    var query = client.query(sql, parameters);
+    var formData = [];
 
-  matchingApp.registration = registration;
+    query.on("error", function(err){
+      cb(err);
 
-  cb();
+      done();
+    });
+
+    query.on("row", function(row){
+      var data = row.data;
+      data.id = row.id;
+      formData.push(row.data);
+    });
+
+    query.on("end", function(){
+      if(formDataId) {
+        formData = formData[0];
+      }
+
+      cb(null, formData);
+
+      done();
+    });
+  });
 };

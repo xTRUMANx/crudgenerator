@@ -1,5 +1,7 @@
 var appModule = angular.module("AppModule", ["ngRoute", "checklist-model"]);
 
+appModule.constant("apiRootUrl", "/api/");
+
 appModule.config(function($routeProvider){
   $routeProvider.when("/", {
     controller: "HomeCtrl",
@@ -60,4 +62,27 @@ appModule.config(function($routeProvider){
     controller: "AppRegistrationCtrl",
     templateUrl: "partials/appRegistration.html"
   });
+});
+
+appModule.run(function($rootScope, $location, $http, apiRootUrl){
+  $rootScope.$on("$routeChangeStart", function(){
+    if(!$rootScope.authenticated){
+      $location.path("");
+    }
+  });
+
+  $rootScope.logout = function(){
+    $rootScope.authenticated = null;
+    $rootScope.skipSessionCheck = true;
+    $rootScope.loggingOut = true;
+
+    $http.get(apiRootUrl + "logout").
+      success(function(res){
+      }).
+      error(function(data){
+      }).
+      finally(function(){
+        $rootScope.loggingOut = false;
+      });
+  };
 });

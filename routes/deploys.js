@@ -16,10 +16,23 @@ expressValidator.validator.isSubset = function(value, array) {
   }
 };
 
+function handleError(err, req, res){
+  // TODO: Log error
+  console.error(err);
+
+  res.send("Oops, something went wrong server-side. Try again later.", 500);
+}
+
 exports.appHome = function(req, res){
   var appId = req.params.appId;
 
-  db.getDeployedApp(appId, function(app){
+  db.getDeployedApp(appId, function(err, app){
+    if(err) {
+      handleError(err, req, res);
+
+      return;
+    }
+
     if(!app) {
       res.send(404, "app not found");
 
@@ -39,7 +52,13 @@ exports.appHome = function(req, res){
 exports.appLoginGET = function(req, res){
   var appId = req.params.appId;
 
-  db.getDeployedApp(appId, function(app){
+  db.getDeployedApp(appId, function(err, app){
+    if(err) {
+      handleError(err, req, res);
+
+      return;
+    }
+
     if(!app) {
       res.send(404, "app not found");
 
@@ -73,7 +92,13 @@ exports.appLoginPOST = function(req, res){
   var appId = req.params.appId;
   var loginForm = req.body;
 
-  db.authenticateUser(appId, loginForm, function(isValidLogin){
+  db.authenticateAppUser(appId, loginForm, function(err, isValidLogin){
+    if(err) {
+      handleError(err, req, res);
+
+      return;
+    }
+
     if(isValidLogin) {
       res.cookie("username", loginForm.id);
 
@@ -88,7 +113,13 @@ exports.appLoginPOST = function(req, res){
 exports.appRegisterGET = function(req, res){
   var appId = req.params.appId;
 
-  db.getDeployedApp(appId, function(app){
+  db.getDeployedApp(appId, function(err, app){
+    if(err) {
+      handleError(err, req, res);
+
+      return;
+    }
+
     if(!app) {
       res.send(404, "app not found");
 
@@ -119,7 +150,13 @@ exports.appRegisterPOST = function(req, res){
   var appId = req.params.appId;
   var registrationForm = req.body;
 
-  db.getDeployedApp(appId, function(app){
+  db.getDeployedApp(appId, function(err, app){
+    if(err) {
+      handleError(err, req, res);
+
+      return;
+    }
+
     if(!app) {
       res.send(404, "app not found");
 
@@ -133,7 +170,7 @@ exports.appRegisterPOST = function(req, res){
     }
 
     if(registrationForm.password === registrationForm.confirmPassword){
-      db.saveUser(appId, registrationForm, function(){
+      db.registerUser(appId, registrationForm, function(){
         res.redirect("/deploys/" + appId + "/login?registered=true");
       });
     }
@@ -158,7 +195,13 @@ exports.appForm = function(req, res){
 function createAppFormView(req, res){
   var appId = req.params.appId;
 
-  db.getDeployedApp(appId, function(app){
+  db.getDeployedApp(appId, function(err, app){
+    if(err) {
+      handleError(err, req, res);
+
+      return;
+    }
+
     if(!app) {
       res.send(404, "app not found");
 
@@ -174,13 +217,13 @@ function createAppFormView(req, res){
     var formId = Number(req.params.formId);
     var form = app.forms.filter(function(form) { return form.id === formId; })[0];
 
-    if(form.authenticationRules.create && !req.cookies.username){
+    if(form.authenticationRules && form.authenticationRules.create && !req.cookies.username){
       res.redirect("/deploys/" + appId + "/login?requiresAuthentication=true");
 
       return;
     }
 
-    if(form.authenticationRules.view && req.query.formDataId && !req.cookies.username){
+    if(form.authenticationRules && form.authenticationRules.view && req.query.formDataId && !req.cookies.username){
       res.redirect("/deploys/" + appId + "/login?requiresAuthentication=true");
 
       return;
@@ -190,8 +233,14 @@ function createAppFormView(req, res){
     req.locals = req.locals || {};
 
     if(req.query.formDataId && !req.locals.formData){
-      db.getFormData(appId, formId, req.query.formDataId, function(formData){
-        res.render("appForm", {title: form.name, vm: { app: app, formData: formData, errors: req.locals.errors }, navLinks: topLevelNavLinks, showLinks: app.navLinks.showLinks, form: form, saved: req.query.saved, username: req.cookies.username });
+      db.getFormData(appId, formId, req.query.formDataId, function(err, formData){
+        if(err){
+          handleError(err, req, res);
+
+          return;
+        }
+
+        res.render("appForm", {title: form.title, vm: { app: app, formData: formData, errors: req.locals.errors }, navLinks: topLevelNavLinks, showLinks: app.navLinks.showLinks, form: form, saved: req.query.saved, username: req.cookies.username });
       });
     }
     else{
@@ -206,24 +255,36 @@ exports.saveAppForm = function(req, res){
   var formId = req.params.formId;
   var formData = req.body;
 
-  db.getDeployedForm(appId, formId, function(form){
+  db.getDeployedForm(appId, formId, function(err, form){
+    if(err) {
+      handleError(err, req, res);
+
+      return;
+    }
+
     if(!form) {
       res.send(404, "form not found");
 
       return;
     }
 
-    if(form.authenticationRules.update && formData.id && !req.cookies.username){
+    if(form.authenticationRules && form.authenticationRules.update && formData.id && !req.cookies.username){
       res.redirect("/deploys/" + appId + "/login?requiresAuthentication=true");
 
       return;
     }
 
-    validateForm(appId, formId, req, function(err){
+    validateForm(appId, formId, req, res, function(err){
       if(!err.length) {
         // if valid, pass to db.saveForm
 
-        db.saveFormData(appId, formId, formData, req.body.id, function(){
+        db.saveFormData(appId, formId, formData, req.body.id, function(err){
+          if(err){
+            handleError(err, req, res);
+
+            return;
+          }
+
           var url = "/deploys/" + appId + "/forms/" + formId.toString() + "?saved=true";
 
           res.redirect(url);
@@ -240,11 +301,18 @@ exports.saveAppForm = function(req, res){
   });
 };
 
-function validateForm(appId, formId, req, cb){
+function validateForm(appId, formId, req, res, cb){
   var errors = [];
-  db.getForm(appId, formId, function(form){
+
+  db.getDeployedForm(appId, formId, function(err, form){
+    if(err){
+      handleError(err, res, res);
+
+      return;
+    }
+
     if(!form) {
-      errors.push({msg: "Form not found."});
+      err = {msg: "Form not found."};
     }
     else{
       form.fields.forEach(function(field){
@@ -283,10 +351,10 @@ function validateForm(appId, formId, req, cb){
 
       var validationErrors = req.validationErrors();
 
-      var err = validationErrors ? errors.concat(validationErrors) : errors;
-
-      cb(err);
+      err = validationErrors ? errors.concat(validationErrors) : errors;
     }
+
+    cb(err);
   });
 }
 
@@ -295,7 +363,13 @@ exports.appListing = function(req, res){
   var appId = req.params.appId;
   var listingId = req.params.listingId;
 
-  db.getDeployedListing(appId, listingId, function(listing){
+  db.getDeployedListing(appId, listingId, function(err, listing){
+    if(err) {
+      handleError(err, req, res);
+
+      return;
+    }
+
     if(!listing) {
       res.send(404, "listing not found");
 
@@ -310,14 +384,20 @@ exports.appListing = function(req, res){
 
     if(listing){
       // Get listing data
-      db.getFormData(appId, listing.formId, null, function(data){
+      db.getFormData(appId, listing.formId, null, function(err, data){
+        if(err){
+          handleError(err, req, res);
+
+          return;
+        }
+
         var fieldIds = [];
 
         for(var key in listing.fields) {
-          if(listing.fields[key]) fieldIds.push(key);
+          if(listing.fields[key]) fieldIds.push(Number(key));
         }
 
-        db.getForm(appId, listing.formId, function(form){
+        db.getDeployedForm(appId, listing.formId, function(err, form){
           var listingFields = form.fields.filter(function(field){ return fieldIds.indexOf(field.id) > -1});
 
           listingFields.forEach(function(field){
@@ -326,7 +406,13 @@ exports.appListing = function(req, res){
 
           listingFields.sort(function(a,b){ return a.order > b.order; });
 
-          db.getDeployedApp(appId, function(app){
+          db.getDeployedApp(appId, function(err, app){
+            if(err) {
+              handleError(err, req, res);
+
+              return;
+            }
+
             var topLevelNavLinks = app.navLinks.links.filter(function(navLink){ return !navLink.parentId; });
 
             topLevelNavLinks.forEach(function(navLink){

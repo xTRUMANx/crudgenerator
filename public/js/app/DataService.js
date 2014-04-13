@@ -1,6 +1,4 @@
-appModule.factory("DataService", function($q, $http){
-  var apiRootUrl = "/api/";
-
+appModule.factory("DataService", function($q, $http, apiRootUrl){
   function promise(cb){
     var deferred = $q.defer();
 
@@ -10,6 +8,28 @@ appModule.factory("DataService", function($q, $http){
   }
 
   return {
+    authenticate: function(credentials){
+      return promise(function(deferred){
+        $http.post(apiRootUrl + "login", credentials).
+          success(function(res){
+            deferred.resolve(res);
+          }).
+          error(function(data){
+            deferred.reject(data);
+          });
+      });
+    },
+    whoami: function(){
+      return promise(function(deferred){
+        $http.get(apiRootUrl + "whoami").
+          success(function(res){
+            deferred.resolve(res.username);
+          }).
+          error(function(data){
+            deferred.reject(data);
+          });
+      });
+    },
     getApps: function(){
       return promise(function(deferred){
         $http.get(apiRootUrl + "apps").
