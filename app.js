@@ -24,6 +24,7 @@ app.use(express.cookieParser('your secret here'));
 app.use(express.session());
 app.use(expressValidator());
 app.use(app.router);
+app.use(express.compress());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // development only
