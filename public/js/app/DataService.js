@@ -30,6 +30,14 @@ appModule.factory("DataService", function($q, $http, apiRootUrl){
           });
       });
     },
+    getDeploymentSite: function(){
+      return promise(function(deferred){
+        $http.get(apiRootUrl + "deploymentSite").
+          success(function(res){
+            deferred.resolve(res.deploymentSite);
+          });
+      });
+    },
     getApps: function(){
       return promise(function(deferred){
         $http.get(apiRootUrl + "apps").

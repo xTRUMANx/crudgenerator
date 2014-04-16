@@ -1,4 +1,5 @@
 var db = require('../services/db');
+var config = require('../config');
 
 exports.router = function(req,res){
   exports[req.params.segment + req.method] ? exports[req.params.segment + req.method](req,res) : res.send("not found", 404);
@@ -189,8 +190,12 @@ exports.deployPOST = function(req, res){
       return;
     }
 
-    res.redirect("/deploys/" + appId);
+    res.redirect("http://" + appId + "." + config.deploymentSite);
   });
+};
+
+exports.deploymentSiteGET = function(req, res){
+  res.json({ deploymentSite: config.deploymentSite });
 };
 
 exports.usersGET = function(req, res){

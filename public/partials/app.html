@@ -157,7 +157,7 @@
   </form>
 
   <div class="col-sm-4 text-center">
-    <a class="btn btn-primary btn-lg" href="/deploys/{{app.id}}" ng-class="{ disabled: !app.deployed }">
+    <a class="btn btn-primary btn-lg" target="_blank" href="http://{{app.id}}.{{deploymentSite}}" ng-class="{ disabled: !app.deployed || !deploymentSite }">
       View App
     </a>
   </div>

@@ -1,6 +1,11 @@
 appModule.controller("AppCtrl", function($scope, $routeParams, DataService){
   $scope.appId = $routeParams.appId;
 
+  DataService.getDeploymentSite().
+    then(function(deploymentSite){
+      $scope.deploymentSite = deploymentSite;
+    });
+
   DataService.getAppById(Number($scope.appId)).
     then(function(app){
       $scope.app = app;
