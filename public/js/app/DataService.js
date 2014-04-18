@@ -1,4 +1,4 @@
-appModule.factory("DataService", function($q, $http, apiRootUrl){
+appModule.factory("DataService", ["$q", "$http", "apiRootUrl", function($q, $http, apiRootUrl){
   function promise(cb){
     var deferred = $q.defer();
 
@@ -27,14 +27,6 @@ appModule.factory("DataService", function($q, $http, apiRootUrl){
           }).
           error(function(data){
             deferred.reject(data);
-          });
-      });
-    },
-    getDeploymentSite: function(){
-      return promise(function(deferred){
-        $http.get(apiRootUrl + "deploymentSite").
-          success(function(res){
-            deferred.resolve(res.deploymentSite);
           });
       });
     },
@@ -143,4 +135,4 @@ appModule.factory("DataService", function($q, $http, apiRootUrl){
       });
     }
   };
-});
+}]);

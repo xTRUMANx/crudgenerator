@@ -2,7 +2,7 @@ var appModule = angular.module("AppModule", ["ngRoute", "checklist-model"]);
 
 appModule.constant("apiRootUrl", "/api/");
 
-appModule.config(function($routeProvider){
+appModule.config(["$routeProvider", function($routeProvider){
   $routeProvider.when("/", {
     controller: "HomeCtrl",
     templateUrl: "partials/home.html"
@@ -62,9 +62,9 @@ appModule.config(function($routeProvider){
     controller: "AppRegistrationCtrl",
     templateUrl: "partials/appRegistration.html"
   });
-});
+}]);
 
-appModule.run(function($rootScope, $location, $http, apiRootUrl){
+appModule.run(["$rootScope", "$location", "$http", "apiRootUrl", function($rootScope, $location, $http, apiRootUrl){
   $rootScope.waitMessages = [];
 
   $http.get(apiRootUrl + "deploymentSite").
@@ -102,4 +102,4 @@ appModule.run(function($rootScope, $location, $http, apiRootUrl){
         $rootScope.loggingOut = false;
       });
   };
-});
+}]);

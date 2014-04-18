@@ -1,4 +1,4 @@
-appModule.controller("HomeCtrl", function($scope, $location, DataService){
+appModule.controller("HomeCtrl", ["$scope", "$location", "DataService", function($scope, $location, DataService){
   $scope.$root.title = null;
   $scope.loginForm = {};
 
@@ -52,4 +52,4 @@ appModule.controller("HomeCtrl", function($scope, $location, DataService){
         $scope.authenticating = false;
       });
   };
-});
+}]);

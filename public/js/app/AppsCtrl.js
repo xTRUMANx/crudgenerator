@@ -1,4 +1,4 @@
-appModule.controller("AppsCtrl", function($scope, $location, DataService){
+appModule.controller("AppsCtrl", ["$scope", "$location", "DataService", function($scope, $location, DataService){
   $scope.$root.title = "Apps";
 
   $scope.newApp = {};
@@ -26,4 +26,4 @@ appModule.controller("AppsCtrl", function($scope, $location, DataService){
         $scope.saving = false;
       });
   };
-});
+}]);
