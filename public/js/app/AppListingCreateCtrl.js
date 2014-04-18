@@ -1,22 +1,51 @@
-appModule.controller("AppListingCreateCtrl", function($scope, $routeParams, $location, DataService){
+appModule.controller("AppListingCreateCtrl", function($scope, $routeParams, $location, $q, DataService){
   $scope.appId = Number($routeParams.appId);
 
-  DataService.getAppById($scope.appId).
-    then(function(app){
-      $scope.app = app;
-    });
+  var waitMessageKey = "AppListingCreateCtrl.getAppById";
+  $scope.$root.addWaitMessage(waitMessageKey, "Getting app data");
+  $scope.initializing = true;
+
+  var promises = [];
 
   if($scope.listingId = Number($routeParams.listingId)) {
+    var getListingDeferred = $q.defer();
+
+    promises.push(getListingDeferred.promise);
+
+    var waitMessageKey2 = "AppFormCreateCtrl.getListing";
+    $scope.$root.addWaitMessage(waitMessageKey2, "Getting listing data");
+
     DataService.
       getListing($scope.appId, $scope.listingId).
       then(function(listing){
         $scope.originalListing = listing;
         $scope.listing = listing;
+      }).
+      finally(function(){
+        $scope.$root.removeWaitMessage(waitMessageKey2);
+        getListingDeferred.resolve();
       });
   }
   else {
     $scope.listing = { fields: [] };
   }
+
+  var getAppDeferred = $q.defer();
+
+  promises.push(getAppDeferred.promise);
+
+  DataService.getAppById($scope.appId).
+    then(function(app){
+      $scope.app = app;
+    }).
+    finally(function(){
+      getAppDeferred.resolve();
+      $scope.$root.removeWaitMessage(waitMessageKey);
+    });
+
+  $q.all(promises).then(function(){
+    $scope.initializing = false;
+  });
 
   $scope.formSelected = function(){
     if(!$scope.listing) return;
@@ -105,9 +134,14 @@ appModule.controller("AppListingCreateCtrl", function($scope, $routeParams, $loc
   };
 
   $scope.save = function(listing){
-    DataService.saveListing($scope.appId, listing).then(function(){
-      $location.path("/apps/" + $scope.appId);
-    });
+    $scope.saving = true;
+    DataService.saveListing($scope.appId, listing).
+      then(function(){
+        $location.path("/apps/" + $scope.appId);
+      }).
+      finally(function(){
+        $scope.saving = false;
+      });
   };
 
   $scope.moveFieldUp = function(field){

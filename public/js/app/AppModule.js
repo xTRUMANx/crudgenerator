@@ -65,6 +65,23 @@ appModule.config(function($routeProvider){
 });
 
 appModule.run(function($rootScope, $location, $http, apiRootUrl){
+  $rootScope.waitMessages = [];
+
+  $http.get(apiRootUrl + "deploymentSite").
+    success(function(res){
+      $rootScope.deploymentSite = res.deploymentSite;
+    });
+
+  $rootScope.addWaitMessage = function(key, message){
+    $rootScope.waitMessages.push({key: key, text: message});
+  };
+
+  $rootScope.removeWaitMessage = function(key){
+    $rootScope.waitMessages = $rootScope.waitMessages.filter(function(message){
+      return message.key !== key;
+    });
+  };
+
   $rootScope.$on("$routeChangeStart", function(){
     if(!$rootScope.authenticated){
       $location.path("");

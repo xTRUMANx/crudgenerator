@@ -1,5 +1,10 @@
 appModule.controller("AppPreviewCtrl", function($scope, $routeParams, $location, DataService){
   $scope.appId = Number($routeParams.appId);
+
+  var waitMessageKey = "AppFormCreateCtrl.getAppById";
+  $scope.$root.addWaitMessage(waitMessageKey, "Getting app data");
+  $scope.initializing = true;
+
   $scope.data = {};
 
   DataService.getAppById(Number($scope.appId)).
@@ -12,6 +17,11 @@ appModule.controller("AppPreviewCtrl", function($scope, $routeParams, $location,
 
       $scope.linkTargets = extractLinkTargetData(app.forms, "Forms").
         concat(extractLinkTargetData(app.listings, "Listings"));
+    }).
+    finally(function(){
+      $scope.$root.removeWaitMessage(waitMessageKey);
+
+      $scope.initializing = false;
     });
 
   $scope.navLinksTree = function(){

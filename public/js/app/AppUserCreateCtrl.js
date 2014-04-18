@@ -1,9 +1,17 @@
 appModule.controller("AppUserCreateCtrl", function($scope, $routeParams, $location, DataService){
   $scope.appId = Number($routeParams.appId);
 
+  var waitMessageKey = "AppUsersCtrl.getAppById";
+  $scope.$root.addWaitMessage(waitMessageKey, "Getting app data");
+  $scope.initializing = true;
+
   DataService.getAppById($scope.appId).
     then(function(app){
       $scope.app = app;
+    }).
+    finally(function(){
+      $scope.$root.removeWaitMessage(waitMessageKey);
+      $scope.initializing = false;
     });
 
   $scope.user = {};
@@ -22,10 +30,15 @@ appModule.controller("AppUserCreateCtrl", function($scope, $routeParams, $locati
     validate(user, function(isValid){
       if(!isValid) return;
 
+      $scope.saving = true;
+
       DataService.
         createUser($scope.appId, user).
         then(function(){
           $location.path("/apps/" + $scope.appId);
+        }).
+        finally(function(){
+          $scope.saving = false;
         });
     });
   }

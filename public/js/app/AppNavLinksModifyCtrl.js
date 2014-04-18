@@ -1,5 +1,10 @@
 appModule.controller("AppNavLinksModifyCtrl", function($scope, $routeParams, $location, DataService){
   $scope.appId = $routeParams.appId;
+  $scope.navLink = {};
+
+  var waitMessageKey = "AppFormCreateCtrl.getAppById";
+  $scope.$root.addWaitMessage(waitMessageKey, "Getting app data");
+  $scope.initializing = true;
 
   DataService.getAppById(Number($scope.appId)).
     then(function(app){
@@ -11,6 +16,10 @@ appModule.controller("AppNavLinksModifyCtrl", function($scope, $routeParams, $lo
 
       $scope.linkTargets = extractLinkTargetData(app.forms, "Forms").
         concat(extractLinkTargetData(app.listings, "Listings"));
+    }).
+    finally(function(){
+      $scope.$root.removeWaitMessage(waitMessageKey);
+      $scope.initializing = false;
     });
 
   $scope.dropdownNavLinks = function(){
@@ -37,7 +46,10 @@ appModule.controller("AppNavLinksModifyCtrl", function($scope, $routeParams, $lo
     $scope.navLink.parentId = null;
   };
 
-  $scope.saveNavLink = function(navLink){
+  $scope.saveNavLink = function(){
+    $scope.savingNavLink = true;
+    var navLink = $scope.navLink;
+
     DataService.saveNavLink($scope.app.id, navLink).
       then(function(id){
         if(!navLink.id) {
@@ -53,11 +65,19 @@ appModule.controller("AppNavLinksModifyCtrl", function($scope, $routeParams, $lo
           $scope.app.navLinks.links[index] = navLink;
         }
 
-        $scope.navLink = null;
+        $scope.navLink = {};
+      }).
+      finally(function(){
+        $scope.savingNavLink = false;
       });
   };
 
   $scope.saveShowLinks = function(){
-    DataService.saveShowLinks($scope.appId, $scope.app.navLinks.showLinks);
+    $scope.savingShowLinks = true;
+
+    DataService.saveShowLinks($scope.appId, $scope.app.navLinks.showLinks).
+      finally(function(){
+        $scope.savingShowLinks = false;
+      });
   };
 });

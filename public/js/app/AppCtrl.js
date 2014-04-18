@@ -1,14 +1,17 @@
 appModule.controller("AppCtrl", function($scope, $routeParams, DataService){
   $scope.appId = $routeParams.appId;
 
-  DataService.getDeploymentSite().
-    then(function(deploymentSite){
-      $scope.deploymentSite = deploymentSite;
-    });
+  var waitMessageKey = "AppCtrl.getAppById";
+  $scope.$root.addWaitMessage(waitMessageKey, "Getting app data");
+  $scope.initializing = true;
 
   DataService.getAppById(Number($scope.appId)).
     then(function(app){
       $scope.app = app;
+    }).
+    finally(function(){
+      $scope.$root.removeWaitMessage(waitMessageKey);
+      $scope.initializing = false;
     });
 
   $scope.navLinksTree = function(){

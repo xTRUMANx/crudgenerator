@@ -32,34 +32,44 @@
     </div>
   </nav>
 
-  <div ng-if="false">
-    <h3 class="text-center">Setting up...</h3>
-    <div class="progress progress-striped active">
-      <div class="progress-bar"  role="progressbar" style="width: 100%">
+  <div class="container">
+    <div ng-if="false">
+      <h3 class="text-center">Setting up...</h3>
+      <div class="progress progress-striped active">
+        <div class="progress-bar"  role="progressbar" style="width: 100%">
+        </div>
       </div>
     </div>
-  </div>
 
-  <div ng-if="$root.loggingOut" ng-cloak>
-    <h3 class="text-center">Logging out...</h3>
-    <div class="progress progress-striped active">
-      <div class="progress-bar"  role="progressbar" style="width: 100%">
+    <div ng-if="$root.loggingOut" ng-cloak>
+      <h3 class="text-center">Logging out...</h3>
+      <div class="progress progress-striped active">
+        <div class="progress-bar"  role="progressbar" style="width: 100%">
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="alert alert-danger" ng-if="$root.err" ng-cloak>
-    <button type="button" class="close" ng-click="$root.err = null">&times;</button>
-    {{err}}
-  </div>
+    <div ng-if="$root.waitMessages.length" ng-cloak>
+      <h3 class="text-center" ng-repeat="message in $root.waitMessages">{{ message.text }}</h3>
+      <div class="progress progress-striped active">
+        <div class="progress-bar"  role="progressbar" style="width: 100%">
+        </div>
+      </div>
+    </div>
 
-  <div class="container" ng-view></div>
+    <div class="alert alert-danger" ng-if="$root.err" ng-cloak>
+      <button type="button" class="close" ng-click="$root.err = null">&times;</button>
+      {{err}}
+    </div>
+
+    <ng-view />
+  </div>
 
   <script type="application/javascript" src="js/jquery-2.0.3.min.js"></script>
   <script type="application/javascript" src="js/bootstrap.min.js"></script>
-  <script type="application/javascript" src="js/angular.js"></script>
-  <script type="application/javascript" src="js/angular-route.js"></script>
-  <script type="application/javascript" src="js/checklist-model.js"></script>
+  <script type="application/javascript" src="js/angular.min.js"></script>
+  <script type="application/javascript" src="js/angular-route.min.js"></script>
+  <script type="application/javascript" src="js/checklist-model.min.js"></script>
   <script type="application/javascript" src="js/app/AppModule.js"></script>
   <script type="application/javascript" src="js/app/DataService.js"></script>
   <script type="application/javascript" src="js/app/HomeCtrl.js"></script>

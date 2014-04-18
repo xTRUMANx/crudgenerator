@@ -1,18 +1,29 @@
 appModule.controller("AppsCtrl", function($scope, $location, DataService){
   $scope.$root.title = "Apps";
 
-  // TODO: Apps should be fetched from DataService
+  $scope.newApp = {};
+
+  var waitMessageKey = "AppCtrl.getAppById";
+  $scope.$root.addWaitMessage(waitMessageKey, "Getting apps");
+  $scope.initializing = true;
+
   DataService.getApps().
     then(function(apps){
       $scope.apps = apps;
+    }).
+    finally(function(){
+      $scope.$root.removeWaitMessage(waitMessageKey);
+      $scope.initializing = false;
     });
 
   $scope.create = function(){
-    DataService.createApp({title: $scope.newAppTitle}).
-      then(function(id){
-        $scope.newAppName = null;
+    $scope.saving = true;
 
+    DataService.createApp($scope.newApp).
+      then(function(id){
         $location.path("/apps/" + id);
+
+        $scope.saving = false;
       });
   };
 });

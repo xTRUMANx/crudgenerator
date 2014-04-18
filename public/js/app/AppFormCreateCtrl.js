@@ -1,18 +1,30 @@
-appModule.controller("AppFormCreateCtrl", function($scope, $routeParams, $location, DataService){
+appModule.controller("AppFormCreateCtrl", function($scope, $routeParams, $location, $q, DataService){
   $scope.appId = Number($routeParams.appId);
 
-  DataService.getAppById($scope.appId).
-    then(function(app){
-      $scope.app = app;
-    });
+  var waitMessageKey = "AppFormCreateCtrl.getAppById";
+  $scope.$root.addWaitMessage(waitMessageKey, "Getting app data");
+  $scope.initializing = true;
+
+  var promises = [];
 
   if($scope.formId = Number($routeParams.formId)) {
     // NOTE: Maybe just fetch the form from the app object?
+    var getFormDeferred = $q.defer();
+
+    promises.push(getFormDeferred.promise);
+
+    var waitMessageKey2 = "AppFormCreateCtrl.getForm";
+    $scope.$root.addWaitMessage(waitMessageKey2, "Getting form data");
+
     DataService.
       getForm($scope.appId, $scope.formId).
       then(function(form){
         $scope.form = form;
         $scope.selectedField = $scope.form.fields[0];
+      }).
+      finally(function(){
+        $scope.$root.removeWaitMessage(waitMessageKey2);
+        getFormDeferred.resolve();
       });
   }
   else {
@@ -20,6 +32,23 @@ appModule.controller("AppFormCreateCtrl", function($scope, $routeParams, $locati
 
     $scope.selectedField = $scope.form.fields[0];
   }
+
+  var getAppDeferred = $q.defer();
+
+  promises.push(getAppDeferred.promise);
+
+  DataService.getAppById($scope.appId).
+    then(function(app){
+      $scope.app = app;
+    }).
+    finally(function(){
+      getAppDeferred.resolve();
+      $scope.$root.removeWaitMessage(waitMessageKey);
+    });
+
+  $q.all(promises).then(function(){
+    $scope.initializing = false;
+  });
 
   $scope.types = ["text", "number", "date", "boolean", "options"];
   $scope.optionTypes = ["radio", "checkbox", "select", "multi-select"];
@@ -59,9 +88,15 @@ appModule.controller("AppFormCreateCtrl", function($scope, $routeParams, $locati
   };
 
   $scope.save = function(form) {
-    DataService.saveForm($scope.appId, form).then(function(){
-      $location.path("/apps/" + $scope.appId);
-    });
+    $scope.saving = true;
+
+    DataService.saveForm($scope.appId, form).
+      then(function(){
+        $location.path("/apps/" + $scope.appId);
+      }).
+      finally(function(){
+        $scope.saving = false;
+      });
   };
 
   $scope.addField = function(){

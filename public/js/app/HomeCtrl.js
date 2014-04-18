@@ -3,27 +3,27 @@ appModule.controller("HomeCtrl", function($scope, $location, DataService){
   $scope.loginForm = {};
 
   if(!$scope.$root.skipSessionCheck){
-  $scope.checkingSession = true;
+    var waitMessageKey = "HomeCtrl.initialwhoami";
+    $scope.$root.addWaitMessage(waitMessageKey, "Checking for previous session");
+    $scope.initializing = true;
 
-  DataService.whoami().
-    then(function(username){
-      if(username) {
-        $scope.$root.authenticated = true;
+    DataService.whoami().
+      then(function(username){
+        if(username) {
+          $scope.$root.authenticated = true;
 
-        if ($scope.$root.authenticated) {
-          $location.path("/apps");
+          if ($scope.$root.authenticated) {
+            $location.path("/apps");
+          }
         }
-      }
-    }).
-    catch(function(reason){
-      $scope.$root.err = reason;
-    }).
-    finally(function(){
-      $scope.checkingSession = false;
-    });
-  }
-  else{
-    $scope.$root.skipSessionCheck = false;
+      }).
+      catch(function(reason){
+        $scope.$root.err = reason;
+      }).
+      finally(function(){
+        $scope.$root.removeWaitMessage(waitMessageKey);
+        $scope.initializing = false;
+      });
   }
 
   $scope.login = function(){

@@ -1,12 +1,4 @@
-<div ng-show="checkingSession">
-  <h3 class="text-center">Checking for previous session</h3>
-  <div class="progress progress-striped active">
-    <div class="progress-bar"  role="progressbar" style="width: 100%">
-    </div>
-  </div>
-</div>
-
-<div class="col-xs-4 col-xs-offset-4" ng-if="!checkingSession">
+<div class="col-xs-4 col-xs-offset-4" ng-if="!initializing">
   <form name="form" class="panel panel-primary" ng-submit="login()">
     <div class="panel-heading">Login</div>
 
@@ -27,7 +19,7 @@
     </div>
 
     <div class="panel-footer">
-      <input class="btn btn-primary" value="Login" type="submit" ng-disabled="form.$invalid" ng-hide="authenticating"/>
+      <input class="btn btn-primary btn-lg" value="Login" type="submit" ng-disabled="form.$invalid" ng-hide="authenticating"/>
       <div class="progress progress-striped active" ng-show="authenticating">
         <div class="progress-bar"  role="progressbar" style="width: 100%">
         </div>
