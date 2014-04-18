@@ -11,5 +11,11 @@
     "express-validator": "~2.1.0",
     "q": "~1.0.1",
     "pg": "~3.0.1"
+  },
+  "devDependencies": {
+    "gulp": "~3.6.1",
+    "gulp-rename": "~1.2.0",
+    "gulp-concat": "~2.2.0",
+    "gulp-uglify": "~0.2.1"
   }
 }
