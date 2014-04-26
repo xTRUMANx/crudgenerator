@@ -4,7 +4,7 @@ var fs = require("fs"),
   uglify = require("gulp-uglify"),
   rename = require("gulp-rename");
 
-gulp.task("angularscripts", function(cb){
+gulp.task("myappscripts", function(cb){
   fs.readdir("public/js/app", function(err, files){
     if(err) cb(err);
 
@@ -29,12 +29,22 @@ gulp.task("angularscripts", function(cb){
   });
 });
 
-gulp.task("watch", function(){
-  gulp.watch("public/js/app/*.js", ["angularscripts"]);
+gulp.task("otherscripts", function(cb){
+  var files = ["jquery-2.0.3.min.js", "bootstrap.min.js", "angular.min.js", "angular-route.min.js", "checklist-model.min.js"];
+
+  files = files.map(function(file){ return "./public/js/" + file; });
+
+  gulp.src(files).
+    pipe(concat("scripts.min.js")).
+    pipe(gulp.dest("./public/js"));
 });
 
-gulp.task("bundle", ["angularscripts"], function(){
-  var files = ["jquery-2.0.3.min.js", "bootstrap.min.js", "angular.min.js", "angular-route.min.js", "checklist-model.min.js", "app.min.js"];
+gulp.task("watch", function(){
+  gulp.watch("public/js/app/*.js", ["myappscripts"]);
+});
+
+gulp.task("bundle", ["otherscripts", "myappscripts"], function(){
+  var files = ["scripts.min.js", "app.min.js"];
 
   files = files.map(function(file){ return "./public/js/" + file; });
 
